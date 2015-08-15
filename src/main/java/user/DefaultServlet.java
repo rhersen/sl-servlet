@@ -17,7 +17,9 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
 
     protected void doGet(javax.servlet.http.HttpServletRequest request, javax.servlet.http
             .HttpServletResponse response) throws javax.servlet.ServletException, IOException {
-        HttpURLConnection conn = getConn(Key.get(), request.getRequestURI().substring(1));
+        String requestURI = request.getRequestURI();
+        int i = requestURI.lastIndexOf('/');
+        HttpURLConnection conn = getConn(Key.get(), requestURI.substring(i + 1));
 
         if (conn.getResponseCode() != 200)
             throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
