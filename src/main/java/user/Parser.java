@@ -22,8 +22,8 @@ public class Parser {
     }
 
     private static void skipUntilTrains(JsonParser p) throws IOException {
-        JsonToken t = null;
-        while (!isFieldNameTrains(t, p.getCurrentName()))
+        JsonToken t = VALUE_NULL;
+        while (t != null && !isFieldNameTrains(t, p.getCurrentName()))
             t = p.nextToken();
     }
 

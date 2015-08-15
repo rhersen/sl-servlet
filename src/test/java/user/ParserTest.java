@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 public class ParserTest {
     @Test
@@ -59,5 +60,18 @@ public class ParserTest {
         Iterator<Map<String, Object>> i = trains.iterator();
         assertEquals("Märsta", i.next().get("Destination"));
         assertFalse(i.hasNext());
+    }
+
+    @Test
+    public void parsesInputWithoutTrains() throws Exception {
+        Collection<Map<String, Object>> trains = Parser.trains(new ByteArrayInputStream(("{\n" +
+                "  \"ResponseData\": {\n" +
+                "    \"Buses\": [      {\n" +
+                "      \"Destination\": \"Märsta\"\n" +
+                "    }]\n" +
+                "  }\n" +
+                "}").getBytes(StandardCharsets.UTF_8)));
+
+        assertNull(trains);
     }
 }
