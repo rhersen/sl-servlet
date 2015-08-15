@@ -6,7 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
 
-public class Hello extends javax.servlet.http.HttpServlet {
+public class DefaultServlet extends javax.servlet.http.HttpServlet {
     protected void doPost(javax.servlet.http.HttpServletRequest request, javax.servlet.http
             .HttpServletResponse response) throws javax.servlet.ServletException, IOException {
 

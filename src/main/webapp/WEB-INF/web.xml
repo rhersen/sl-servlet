@@ -5,10 +5,10 @@
          version="3.1">
     <servlet>
         <servlet-name>hello</servlet-name>
-        <servlet-class>user.Hello</servlet-class>
+        <servlet-class>user.DefaultServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>hello</servlet-name>
-        <url-pattern>/hello</url-pattern>
+        <url-pattern>/*</url-pattern>
     </servlet-mapping>
 </web-app>
