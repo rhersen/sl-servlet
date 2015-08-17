@@ -5,7 +5,9 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultServlet extends javax.servlet.http.HttpServlet {
     protected void doPost(javax.servlet.http.HttpServletRequest request, javax.servlet.http
@@ -25,31 +27,39 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
 
         Collection<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
-        for (Map.Entry<String, Object> e : CommonFields.get(trains).entrySet()) {
+        HashMap<String, Object> commonFields = CommonFields.get(trains);
+        for (Map.Entry<String, Object> e : commonFields.entrySet()) {
             writer.print("<div>");
             writer.print(e);
             writer.println("</div>");
         }
 
-        writer.print("<table>");
-        for (Map<String, Object> train : trains) {
+        if (!trains.isEmpty()) {
+            Set<String> specificFields = trains.iterator().next().keySet();
+            specificFields.removeAll(commonFields.keySet());
+            writer.print("<table>");
             writer.print("<tr>");
+            for (String specificField : specificFields) {
+                writer.print("<th>");
+                writer.print(specificField);
+                writer.println("</th>");
+            }
 
-            writer.print("<td>");
-            writer.print(train.get("ExpectedDateTime"));
-            writer.println("</td>");
+            writer.print("</tr>");
 
-            writer.print("<td>");
-            writer.print(train.get("Destination"));
-            writer.println("</td>");
+            for (Map<String, Object> train : trains) {
+                writer.print("<tr>");
 
-            writer.print("<td>");
-            writer.print(train.get("DisplayTime"));
-            writer.println("</td>");
+                for (String specificField : specificFields) {
+                    writer.print("<td>");
+                    writer.print(train.get(specificField));
+                    writer.println("</td>");
+                }
 
-            writer.println("</tr>");
+                writer.println("</tr>");
+            }
+            writer.println("</table>");
         }
-        writer.println("</table>");
 
         conn.disconnect();
 
