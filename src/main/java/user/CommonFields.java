@@ -2,9 +2,23 @@ package user;
 
 import java.util.*;
 
+import static java.util.Arrays.asList;
+
 public class CommonFields {
-    static HashMap<String, Object> get(Collection<Map<String, Object>> trains) {
-        HashMap<String, Object> r = new HashMap<>();
+    static Map<String, Object> get(Collection<Map<String, Object>> trains) {
+        Map<String, Object> r = new LinkedHashMap<>();
+
+        if (trains.isEmpty())
+            return r;
+
+        Map<String, Object> first = trains.iterator().next();
+        for (String key : asList("TransportMode", "SiteId", "StopAreaName", "StopAreaNumber"))
+            r.put(key, first.get(key));
+        return r;
+    }
+
+    static Map<String, Object> extract(Collection<Map<String, Object>> trains) {
+        Map<String, Object> r = new HashMap<>();
 
         if (trains.isEmpty())
             return r;

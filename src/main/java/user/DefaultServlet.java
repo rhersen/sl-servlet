@@ -4,10 +4,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+
+import static java.util.Arrays.asList;
 
 public class DefaultServlet extends javax.servlet.http.HttpServlet {
     protected void doPost(javax.servlet.http.HttpServletRequest request, javax.servlet.http
@@ -27,25 +26,19 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
 
         Collection<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
-        HashMap<String, Object> commonFields = CommonFields.get(trains);
-        for (Map.Entry<String, Object> e : commonFields.entrySet()) {
-            writer.print("<div>");
+        Map<String, Object> commonFields = CommonFields.get(trains);
+        for (Object e : commonFields.values()) {
+            writer.print("<span>");
             writer.print(e);
-            writer.println("</div>");
+            writer.println("</span>");
         }
+        List<String> specificFields = asList("LineNumber", "JourneyDirection", "Destination",
+                "SecondaryDestinationName", "DisplayTime", "TimeTabledDateTime",
+                "ExpectedDateTime", "StopPointNumber", "StopPointDesignation", "Deviations");
 
         if (!trains.isEmpty()) {
-            Set<String> specificFields = trains.iterator().next().keySet();
             specificFields.removeAll(commonFields.keySet());
             writer.print("<table>");
-            writer.print("<tr>");
-            for (String specificField : specificFields) {
-                writer.print("<th>");
-                writer.print(specificField);
-                writer.println("</th>");
-            }
-
-            writer.print("</tr>");
 
             for (Map<String, Object> train : trains) {
                 writer.print("<tr>");
