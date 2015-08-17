@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import java.util.Map;
 import static com.fasterxml.jackson.core.JsonToken.*;
 
 public class Parser {
-    public static Collection<Map<String, Object>> trains(InputStream in) throws IOException {
+    public static Collection<Map<String, Object>> trains(InputStreamReader in) throws IOException {
         JsonParser p = new JsonFactory().createParser(in);
         skipUntilTrains(p);
         //noinspection unchecked
