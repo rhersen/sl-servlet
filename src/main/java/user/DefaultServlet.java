@@ -25,6 +25,7 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
             throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
 
         response.setContentType("text/html");
+        response.setCharacterEncoding("UTF-8");
         PrintWriter writer = response.getWriter();
 
         Collection<Map<String, Object>> trains = Parser.trains(new InputStreamReader(conn.getInputStream(), "UTF-8"));
