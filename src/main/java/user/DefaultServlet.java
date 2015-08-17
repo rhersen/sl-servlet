@@ -27,6 +27,7 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
         Collection<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
         writer.print("<!doctype html>");
+        writer.print("<meta charset=utf-8>");
         writer.print("<title>");
         writer.print(trains.iterator().next().get("StopAreaName"));
         writer.println("</title>");
