@@ -26,12 +26,18 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
 
         Collection<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
+        writer.print("<!doctype html>");
+        writer.print("<title>");
+        writer.print(trains.iterator().next().get("StopAreaName"));
+        writer.println("</title>");
+
         Map<String, Object> commonFields = CommonFields.get(trains);
         for (Object e : commonFields.values()) {
             writer.print("<span>");
             writer.print(e);
             writer.println("</span>");
         }
+
         List<String> specificFields = asList("LineNumber", "JourneyDirection", "Destination",
                 "SecondaryDestinationName", "DisplayTime", "TimeTabledDateTime",
                 "ExpectedDateTime", "StopPointNumber", "StopPointDesignation", "Deviations");
