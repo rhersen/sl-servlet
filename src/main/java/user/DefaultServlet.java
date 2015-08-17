@@ -9,6 +9,11 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 public class DefaultServlet extends javax.servlet.http.HttpServlet {
+
+    private final List<String> specific = asList("LineNumber", "JourneyDirection", "Destination",
+            "SecondaryDestinationName", "DisplayTime", "TimeTabledDateTime",
+            "ExpectedDateTime", "StopPointNumber", "StopPointDesignation", "Deviations");
+
     protected void doPost(javax.servlet.http.HttpServletRequest request, javax.servlet.http
             .HttpServletResponse response) throws javax.servlet.ServletException, IOException {
 
@@ -23,43 +28,27 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
 
         response.setContentType("text/html");
         response.setCharacterEncoding("UTF-8");
-        PrintWriter writer = response.getWriter();
+        PrintWriter w = response.getWriter();
 
         Deque<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
-        writer.print("<!doctype html>");
-        writer.print("<meta charset=utf-8>");
-        writer.print("<title>");
-        writer.print(trains.getFirst().get("StopAreaName"));
-        writer.println("</title>");
+        w.print("<!doctype html>");
+        w.print("<meta charset=utf-8>");
 
-        Map<String, Object> commonFields = CommonFields.get(trains);
-        for (Object e : commonFields.values()) {
-            writer.print("<span>");
-            writer.print(e);
-            writer.println("</span>");
-        }
+        tag("title", trains.getFirst().get("StopAreaName"), w);
 
-        List<String> specificFields = asList("LineNumber", "JourneyDirection", "Destination",
-                "SecondaryDestinationName", "DisplayTime", "TimeTabledDateTime",
-                "ExpectedDateTime", "StopPointNumber", "StopPointDesignation", "Deviations");
+        for (Object value : CommonFields.get(trains).values())
+            tag("span", value, w);
 
         if (!trains.isEmpty()) {
-            specificFields.removeAll(commonFields.keySet());
-            writer.print("<table>");
-
+            w.print("<table>");
             for (Map<String, Object> train : trains) {
-                writer.print("<tr>");
-
-                for (String specificField : specificFields) {
-                    writer.print("<td>");
-                    writer.print(train.get(specificField));
-                    writer.println("</td>");
-                }
-
-                writer.println("</tr>");
+                w.print("<tr>");
+                for (String key : specific)
+                    tag("td", train.get(key), w);
+                w.println("</tr>");
             }
-            writer.println("</table>");
+            w.println("</table>");
         }
 
         conn.disconnect();
@@ -75,6 +64,12 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");
         return conn;
+    }
+
+    private void tag(String tag, Object text, PrintWriter writer) {
+        writer.print("<" + tag + ">");
+        writer.print(text);
+        writer.println("</" + tag + ">");
     }
 
 }
