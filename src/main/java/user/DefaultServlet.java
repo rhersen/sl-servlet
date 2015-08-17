@@ -25,12 +25,12 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter writer = response.getWriter();
 
-        Collection<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
+        Deque<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
         writer.print("<!doctype html>");
         writer.print("<meta charset=utf-8>");
         writer.print("<title>");
-        writer.print(trains.iterator().next().get("StopAreaName"));
+        writer.print(trains.getFirst().get("StopAreaName"));
         writer.println("</title>");
 
         Map<String, Object> commonFields = CommonFields.get(trains);

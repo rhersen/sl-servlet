@@ -11,7 +11,7 @@ public class CommonFieldsTest {
 
     @Test
     public void get() throws Exception {
-        Collection<Map<String, Object>> trains = new ArrayDeque<>();
+        Deque<Map<String, Object>> trains = new ArrayDeque<>();
         Map<String, Object> map = new HashMap<>();
         map.put("SiteId", "9530");
         map.put("StopAreaName", "Stockholms södra");
@@ -27,14 +27,14 @@ public class CommonFieldsTest {
 
     @Test
     public void empty() throws Exception {
-        Collection<Map<String, Object>> trains = new ArrayDeque<>();
+        Deque<Map<String, Object>> trains = new ArrayDeque<>();
         Map<String, Object> result = CommonFields.extract(trains);
         assertTrue(result.isEmpty());
     }
 
     @Test
     public void same() throws Exception {
-        Collection<Map<String, Object>> trains = new ArrayDeque<>();
+        Deque<Map<String, Object>> trains = new ArrayDeque<>();
         trains.add(getMap("k1", "v1", "k2", "v2"));
         trains.add(getMap("k1", "v1", "k2", "v2"));
 
@@ -46,7 +46,7 @@ public class CommonFieldsTest {
 
     @Test
     public void different() throws Exception {
-        Collection<Map<String, Object>> trains = new ArrayDeque<>();
+        Deque<Map<String, Object>> trains = new ArrayDeque<>();
         trains.add(getMap("k1", "v1", "k2", "v2"));
         trains.add(getMap("k1", "v2", "k2", "v1"));
         Map<String, Object> result = CommonFields.extract(trains);
@@ -55,7 +55,7 @@ public class CommonFieldsTest {
 
     @Test
     public void oneSameOneDifferent() throws Exception {
-        Collection<Map<String, Object>> trains = new ArrayDeque<>();
+        Deque<Map<String, Object>> trains = new ArrayDeque<>();
         trains.add(getMap("k1", "v1", "k2", "v2"));
         trains.add(getMap("k1", "v1", "k2", "v1"));
 
@@ -67,7 +67,7 @@ public class CommonFieldsTest {
 
     @Test
     public void twoSameOneDifferent() throws Exception {
-        Collection<Map<String, Object>> trains = new ArrayDeque<>();
+        Deque<Map<String, Object>> trains = new ArrayDeque<>();
         trains.add(getMap("k1", "v1", "k2", "v2"));
         trains.add(getMap("k1", "v1", "k2", "v2"));
         trains.add(getMap("k1", "v1", "k2", "v1"));
@@ -80,7 +80,7 @@ public class CommonFieldsTest {
 
     @Test
     public void oneNull() throws Exception {
-        Collection<Map<String, Object>> trains = new ArrayDeque<>();
+        Deque<Map<String, Object>> trains = new ArrayDeque<>();
         trains.add(getMap("k1", "v1", "k2", "v1"));
         trains.add(getMap("k1", "v1", "k2", null));
 

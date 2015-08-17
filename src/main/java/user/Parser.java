@@ -6,19 +6,16 @@ import com.fasterxml.jackson.core.JsonToken;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.fasterxml.jackson.core.JsonToken.*;
 
 public class Parser {
-    public static Collection<Map<String, Object>> trains(InputStream in) throws IOException {
+    public static Deque<Map<String, Object>> trains(InputStream in) throws IOException {
         JsonParser p = new JsonFactory().createParser(in);
         skipUntilTrains(p);
         //noinspection unchecked
-        return (Collection) getNextTokenValue(p, p.nextToken());
+        return (Deque) getNextTokenValue(p, p.nextToken());
     }
 
     private static void skipUntilTrains(JsonParser p) throws IOException {
@@ -49,9 +46,9 @@ public class Parser {
         return r;
     }
 
-    private static Collection<Object> getArrayValue(JsonParser p) throws IOException {
+    private static Deque<Object> getArrayValue(JsonParser p) throws IOException {
         JsonToken t;
-        Collection<Object> r = new ArrayDeque<>();
+        Deque<Object> r = new ArrayDeque<>();
         while ((t = p.nextToken()) != END_ARRAY)
             r.add(getNextTokenValue(p, t));
         return r;
