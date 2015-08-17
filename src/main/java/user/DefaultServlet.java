@@ -1,13 +1,10 @@
 package user;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -28,7 +25,7 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter writer = response.getWriter();
 
-        Collection<Map<String, Object>> trains = Parser.trains(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+        Collection<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
         writer.print("<!doctype html>");
         writer.print("<meta charset=utf-8>");
