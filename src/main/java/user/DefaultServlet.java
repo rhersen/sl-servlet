@@ -1,26 +1,31 @@
 package user;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.*;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 
-public class DefaultServlet extends javax.servlet.http.HttpServlet {
+public class DefaultServlet extends HttpServlet {
 
-    private final List<String> specific = asList("LineNumber", "JourneyDirection", "Destination",
-            "SecondaryDestinationName", "DisplayTime", "TimeTabledDateTime",
-            "ExpectedDateTime", "StopPointNumber", "StopPointDesignation", "Deviations");
+    private final List<String> specific = asList("JourneyDirection", "Destination",
+            "DisplayTime", "expecteddatetime", "TimeTabledDateTime", "ExpectedDateTime",
+            "Deviations");
 
-    protected void doPost(javax.servlet.http.HttpServletRequest request, javax.servlet.http
-            .HttpServletResponse response) throws javax.servlet.ServletException, IOException {
-
+    protected void doPost(HttpServletRequest q, HttpServletResponse p)
+            throws ServletException, IOException {
     }
 
-    protected void doGet(javax.servlet.http.HttpServletRequest request, javax.servlet.http
-            .HttpServletResponse response) throws javax.servlet.ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         HttpURLConnection conn = getConn(Key.get(), SiteId.get(request.getRequestURI()));
 
         if (conn.getResponseCode() != 200)
@@ -45,7 +50,7 @@ public class DefaultServlet extends javax.servlet.http.HttpServlet {
             for (Map<String, Object> train : trains) {
                 w.print("<tr>");
                 for (String key : specific)
-                    tag("td", train.get(key), w);
+                    tag("td", TrainFormatter.get(train, key), w);
                 w.println("</tr>");
             }
             w.println("</table>");
