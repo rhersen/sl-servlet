@@ -25,7 +25,17 @@ public class DefaultServlet extends HttpServlet {
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpURLConnection conn = getConn(Key.get(), SiteId.get(request.getRequestURI()));
+        String uri = request.getRequestURI();
+
+        if (uri.endsWith("css")) {
+            response.setContentType("text/css");
+            PrintWriter w = response.getWriter();
+            w.print("body {font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', " +
+                    "'Helvetica Neue', Arial, Helvetica, sans-serif;}");
+            return;
+        }
+
+        HttpURLConnection conn = getConn(Key.get(), SiteId.get(uri));
 
         if (conn.getResponseCode() != 200)
             throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
@@ -40,6 +50,8 @@ public class DefaultServlet extends HttpServlet {
         w.print("<meta charset=utf-8>");
 
         tag("title", trains.getFirst().get("StopAreaName"), w);
+
+        w.print("<link rel='stylesheet' type='text/css' href='css'/>");
 
         for (Object value : CommonFields.get(trains).values())
             tag("span", value, w);
