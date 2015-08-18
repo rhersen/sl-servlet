@@ -50,4 +50,20 @@ public class TrainFormatterTest {
         train.put("TimeTabledDateTime", "17:01:25");
         assertEquals("", TrainFormatter.get(train, "expecteddatetime"));
     }
+
+    @Test
+    public void showsTimeTabledIfDifferentFromExpected() throws Exception {
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
+        train.put("ExpectedDateTime", "2015-08-18T17:01:25");
+        assertEquals("17:00", TrainFormatter.get(train, "timetableddatetime"));
+    }
+
+    @Test
+    public void showsTimeTabledAsEmptyIfSameAsExpected() throws Exception {
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
+        train.put("ExpectedDateTime", "2015-08-18T17:00:00");
+        assertEquals("", TrainFormatter.get(train, "timetableddatetime"));
+    }
 }
