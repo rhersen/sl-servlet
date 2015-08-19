@@ -16,8 +16,8 @@ import static java.util.Arrays.asList;
 
 public class DefaultServlet extends HttpServlet {
 
-    private final List<String> specific = asList("JourneyDirection", "Destination",
-            "DisplayTime", "expecteddatetime", "timetableddatetime");
+    private final List<String> specific = asList("displaytime", "Destination",
+            "expecteddatetime", "timetableddatetime");
 
     protected void doPost(HttpServletRequest q, HttpServletResponse p)
             throws ServletException, IOException {
@@ -44,7 +44,8 @@ public class DefaultServlet extends HttpServlet {
         response.setCharacterEncoding("UTF-8");
         PrintWriter w = response.getWriter();
 
-        Deque<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
+        Map<String, Object> responseData = Parser.parse(conn.getInputStream());
+        @SuppressWarnings("unchecked") Deque<Map<String, Object>> trains = (Deque<Map<String, Object>>) responseData.get("Trains");
 
         w.print("<!doctype html>");
         w.print("<meta content=\"true\" name=\"HandheldFriendly\">");

@@ -11,11 +11,11 @@ import java.util.*;
 import static com.fasterxml.jackson.core.JsonToken.*;
 
 public class Parser {
-    public static Deque<Map<String, Object>> trains(InputStream in) throws IOException {
+    public static Map<String, Object> parse(InputStream in) throws IOException {
         JsonParser p = new JsonFactory().createParser(in);
         skipUntilTrains(p);
         //noinspection unchecked
-        return (Deque) getNextTokenValue(p, p.nextToken());
+        return (Map<String, Object>) getNextTokenValue(p, p.nextToken());
     }
 
     private static void skipUntilTrains(JsonParser p) throws IOException {
@@ -25,7 +25,7 @@ public class Parser {
     }
 
     private static boolean isFieldNameTrains(JsonToken t, String currentName) throws IOException {
-        return t == FIELD_NAME && currentName.equals("Trains");
+        return t == FIELD_NAME && currentName.equals("ResponseData");
     }
 
     private static Object getNextTokenValue(JsonParser p, JsonToken t) throws IOException {

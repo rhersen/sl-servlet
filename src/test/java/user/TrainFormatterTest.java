@@ -66,4 +66,18 @@ public class TrainFormatterTest {
         train.put("ExpectedDateTime", "2015-08-18T17:00:00");
         assertEquals("", TrainFormatter.get(train, "timetableddatetime"));
     }
+
+    @Test
+    public void showsDisplayTimeIfRelative() throws Exception {
+        Map<String, Object> train = new HashMap<>();
+        train.put("DisplayTime", "7 min");
+        assertEquals("7 min", TrainFormatter.get(train, "displaytime"));
+    }
+
+    @Test
+    public void showsEmptyDisplayTimeIfAbsolute() throws Exception {
+        Map<String, Object> train = new HashMap<>();
+        train.put("DisplayTime", "17:00");
+        assertEquals("", TrainFormatter.get(train, "displaytime"));
+    }
 }
