@@ -17,7 +17,7 @@ import static java.util.Arrays.asList;
 public class DefaultServlet extends HttpServlet {
 
     private final List<String> specific = asList("JourneyDirection", "Destination",
-            "DisplayTime", "expecteddatetime", "timetableddatetime", "Deviations");
+            "DisplayTime", "expecteddatetime", "timetableddatetime");
 
     protected void doPost(HttpServletRequest q, HttpServletResponse p)
             throws ServletException, IOException {
