@@ -11,7 +11,7 @@ public class CommonFieldsTest {
 
     @Test
     public void get() throws Exception {
-        Deque<Map<String, Object>> trains = new ArrayDeque<>();
+        Collection<Map<String, Object>> trains = new ArrayDeque<>();
         Map<String, Object> map = new HashMap<>();
         map.put("SiteId", "9530");
         map.put("StopAreaName", "Stockholms södra");
@@ -20,9 +20,13 @@ public class CommonFieldsTest {
         trains.add(map);
         Collection<Object> result = new ArrayList<>();
 
-        result.addAll(CommonFields.get(trains).values());
+        Map<String, Object> responseData = new LinkedHashMap<>();
+        responseData.put("Trains", trains);
+        responseData.put("LatestUpdate", "2015-08-19T22:44:05");
+        responseData.put("DataAge", 22);
+        result.addAll(CommonFields.get(responseData).values());
 
-        assertEquals(asList("TRAIN", "9530", "Stockholms södra", "5131"), result);
+        assertEquals(asList("2015-08-19T22:44:05", 22, "9530", "Stockholms södra"), result);
     }
 
     @Test

@@ -5,14 +5,21 @@ import java.util.*;
 import static java.util.Arrays.asList;
 
 public class CommonFields {
-    static Map<String, Object> get(Deque<Map<String, Object>> trains) {
+    static Map<String, Object> get(Map<String, Object> responseData) {
         Map<String, Object> r = new LinkedHashMap<>();
+
+        for (Map.Entry<String, Object> e : responseData.entrySet())
+            if (e.getValue() instanceof String || e.getValue() instanceof Integer)
+                r.put(e.getKey(), e.getValue());
+
+        @SuppressWarnings("unchecked") Deque<Map<String, Object>>
+                trains = (Deque<Map<String, Object>>) responseData.get("Trains");
 
         if (trains.isEmpty())
             return r;
 
         Map<String, Object> first = trains.getFirst();
-        for (String key : asList("TransportMode", "SiteId", "StopAreaName", "StopAreaNumber"))
+        for (String key : asList("SiteId", "StopAreaName"))
             r.put(key, first.get(key));
         return r;
     }
@@ -27,11 +34,10 @@ public class CommonFields {
         r.putAll(first);
         Set<Map.Entry<String, Object>> firstEntries = first.entrySet();
 
-        for (Map<String, Object> train : trains) {
+        for (Map<String, Object> train : trains)
             firstEntries.stream()
                     .filter(entry -> !isEqual(train.get(entry.getKey()), entry.getValue()))
                     .forEach(entry -> r.remove(entry.getKey()));
-        }
 
         return r;
     }

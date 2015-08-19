@@ -59,7 +59,7 @@ public class DefaultServlet extends HttpServlet {
 
         w.print("<link rel='stylesheet' type='text/css' href='css'/>");
 
-        for (Object value : CommonFields.get(trains).values())
+        for (Object value : CommonFields.get(responseData).values())
             tag("span", value, w);
 
         if (!trains.isEmpty()) {
