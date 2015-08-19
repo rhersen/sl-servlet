@@ -47,6 +47,11 @@ public class DefaultServlet extends HttpServlet {
         Deque<Map<String, Object>> trains = Parser.trains(conn.getInputStream());
 
         w.print("<!doctype html>");
+        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
+        w.print("<meta");
+        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
+        w.print(" name=\"viewport\"");
+        w.print(">");
         w.print("<meta charset=utf-8>");
 
         tag("title", trains.getFirst().get("StopAreaName"), w);
