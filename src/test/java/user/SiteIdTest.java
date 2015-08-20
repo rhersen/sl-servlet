@@ -10,6 +10,7 @@ public class SiteIdTest {
     public void extractsLastPartOfUri() {
         assertEquals("9525", SiteId.get("/9525"));
         assertEquals("9525", SiteId.get("/sl/9525"));
-        assertEquals("9525", SiteId.get("9525"));
+        assertNull(SiteId.get("/"));
+        assertNull(SiteId.get(""));
     }
 }

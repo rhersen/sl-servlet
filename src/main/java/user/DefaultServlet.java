@@ -35,7 +35,11 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
-        HttpURLConnection conn = getConn(Key.get(), SiteId.get(uri));
+        String siteId = SiteId.get(uri);
+        if (siteId == null) {
+            return;
+        }
+        HttpURLConnection conn = getConn(Key.get(), siteId);
 
         if (conn.getResponseCode() != 200)
             throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
@@ -45,7 +49,8 @@ public class DefaultServlet extends HttpServlet {
         PrintWriter w = response.getWriter();
 
         Map<String, Object> responseData = Parser.parse(conn.getInputStream());
-        @SuppressWarnings("unchecked") Deque<Map<String, Object>> trains = (Deque<Map<String, Object>>) responseData.get("Trains");
+        @SuppressWarnings("unchecked") Deque<Map<String, Object>>
+                trains = (Deque<Map<String, Object>>) responseData.get("Trains");
 
         w.print("<!doctype html>");
         w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
