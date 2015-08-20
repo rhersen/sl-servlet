@@ -47,7 +47,9 @@ public class DefaultServlet extends HttpServlet {
 
         String siteId = SiteId.get(uri);
         if (siteId == null) {
-            w.print("<div>no SiteId</div>");
+            writeCssHeader(w);
+            for (Integer id : asList(9325, 9510, 9000, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524))
+                w.print("<div><a href='" + id + "'>" + id + "</a></div>");
             return;
         }
 
@@ -68,11 +70,37 @@ public class DefaultServlet extends HttpServlet {
             writeTrains(trains, CommonFields.get(responseData).values(), w);
     }
 
+    private void setHeaders(HttpServletResponse response) {
+        response.setContentType("text/html");
+        response.setCharacterEncoding("UTF-8");
+    }
+
+    private void writeHeaders(PrintWriter w) {
+        w.print("<!doctype html>");
+        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
+        w.print("<meta");
+        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
+        w.print(" name=\"viewport\"");
+        w.print(">");
+        w.print("<meta charset=utf-8>");
+    }
+
+    private HttpURLConnection getConn(String key, String siteId) throws IOException {
+        URL url = new URL("http://api.sl.se/api2/realtimedepartures.json" +
+                "?key=" + key +
+                "&SiteId=" + siteId +
+                "&TimeWindow=60");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json");
+        return conn;
+    }
+
     private void writeTrains(Deque<Map<String, Object>> trains, Collection<Object> commonFields,
                              PrintWriter w) {
         tag("title", trains.getFirst().get("StopAreaName"), w);
 
-        w.print("<link rel='stylesheet' type='text/css' href='css'/>");
+        writeCssHeader(w);
 
         for (Object value : commonFields)
             tag("span", value, w);
@@ -89,30 +117,8 @@ public class DefaultServlet extends HttpServlet {
         }
     }
 
-    private void writeHeaders(PrintWriter w) {
-        w.print("<!doctype html>");
-        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
-        w.print("<meta");
-        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
-        w.print(" name=\"viewport\"");
-        w.print(">");
-        w.print("<meta charset=utf-8>");
-    }
-
-    private void setHeaders(HttpServletResponse response) {
-        response.setContentType("text/html");
-        response.setCharacterEncoding("UTF-8");
-    }
-
-    private HttpURLConnection getConn(String key, String siteId) throws IOException {
-        URL url = new URL("http://api.sl.se/api2/realtimedepartures.json" +
-                "?key=" + key +
-                "&SiteId=" + siteId +
-                "&TimeWindow=60");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Accept", "application/json");
-        return conn;
+    private void writeCssHeader(PrintWriter w) {
+        w.print("<link rel='stylesheet' type='text/css' href='css'/>");
     }
 
     private void tag(String tag, Object text, PrintWriter writer) {
