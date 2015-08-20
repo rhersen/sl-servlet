@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,10 @@ public class DefaultServlet extends HttpServlet {
             throws ServletException, IOException {
         String uri = request.getRequestURI();
 
+        if (uri.endsWith("ico")) {
+            return;
+        }
+
         if (uri.endsWith("css")) {
             response.setContentType("text/css");
             PrintWriter w = response.getWriter();
@@ -35,36 +40,41 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
+        PrintWriter w = response.getWriter();
+
+        setHeaders(response);
+        writeHeaders(w);
+
         String siteId = SiteId.get(uri);
         if (siteId == null) {
+            w.print("<div>no SiteId</div>");
             return;
         }
+
         HttpURLConnection conn = getConn(Key.get(), siteId);
 
         if (conn.getResponseCode() != 200)
             throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
 
-        response.setContentType("text/html");
-        response.setCharacterEncoding("UTF-8");
-        PrintWriter w = response.getWriter();
-
         Map<String, Object> responseData = Parser.parse(conn.getInputStream());
+        conn.disconnect();
+
         @SuppressWarnings("unchecked") Deque<Map<String, Object>>
                 trains = (Deque<Map<String, Object>>) responseData.get("Trains");
 
-        w.print("<!doctype html>");
-        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
-        w.print("<meta");
-        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
-        w.print(" name=\"viewport\"");
-        w.print(">");
-        w.print("<meta charset=utf-8>");
+        if (trains.isEmpty())
+            w.print("<div>no trains for SiteId " + siteId + "</div>");
+        else
+            writeTrains(trains, CommonFields.get(responseData).values(), w);
+    }
 
+    private void writeTrains(Deque<Map<String, Object>> trains, Collection<Object> commonFields,
+                             PrintWriter w) {
         tag("title", trains.getFirst().get("StopAreaName"), w);
 
         w.print("<link rel='stylesheet' type='text/css' href='css'/>");
 
-        for (Object value : CommonFields.get(responseData).values())
+        for (Object value : commonFields)
             tag("span", value, w);
 
         if (!trains.isEmpty()) {
@@ -77,9 +87,21 @@ public class DefaultServlet extends HttpServlet {
             }
             w.println("</table>");
         }
+    }
 
-        conn.disconnect();
+    private void writeHeaders(PrintWriter w) {
+        w.print("<!doctype html>");
+        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
+        w.print("<meta");
+        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
+        w.print(" name=\"viewport\"");
+        w.print(">");
+        w.print("<meta charset=utf-8>");
+    }
 
+    private void setHeaders(HttpServletResponse response) {
+        response.setContentType("text/html");
+        response.setCharacterEncoding("UTF-8");
     }
 
     private HttpURLConnection getConn(String key, String siteId) throws IOException {
