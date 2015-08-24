@@ -1,5 +1,6 @@
 package user;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -8,17 +9,27 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
+import static java.time.LocalDateTime.*;
 import static java.util.Arrays.asList;
 
 public class DefaultServlet extends HttpServlet {
 
     private final List<String> specific = asList("displaytime", "Destination",
             "expecteddatetime", "timetableddatetime");
+    private Logger logger;
+
+    public void init() throws ServletException {
+        super.init();
+        logger = Logger.getAnonymousLogger();
+    }
 
     protected void doPost(HttpServletRequest q, HttpServletResponse p)
             throws ServletException, IOException {
@@ -53,13 +64,20 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
-        HttpURLConnection conn = getConn(Key.get(), siteId);
+        ServletContext cache = request.getSession().getServletContext();
+        @SuppressWarnings("unchecked") Map<String, Object>
+                found = (Map<String, Object>) cache.getAttribute(siteId);
 
-        if (conn.getResponseCode() != 200)
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+        Map<String, Object> responseData = found == null || isExpired(found) ? getDataFromServer(siteId) : found;
 
-        Map<String, Object> responseData = Parser.parse(conn.getInputStream());
-        conn.disconnect();
+        if (found == null)
+            logger.info("not found");
+        else if (isExpired(found))
+            logger.info("expired");
+        else
+            logger.info("cached");
+
+        cache.setAttribute(siteId, responseData);
 
         @SuppressWarnings("unchecked") Deque<Map<String, Object>>
                 trains = (Deque<Map<String, Object>>) responseData.get("Trains");
@@ -68,6 +86,24 @@ public class DefaultServlet extends HttpServlet {
             w.print("<div>no trains for SiteId " + siteId + "</div>");
         else
             writeTrains(trains, CommonFields.get(responseData).values(), w);
+    }
+
+    private boolean isExpired(Map<String, Object> found) {
+        LocalDateTime latestUpdate = parse(found.get("LatestUpdate").toString());
+        LocalDateTime now = now();
+        Duration age = Duration.between(latestUpdate, now);
+        return age.compareTo(Duration.ofMinutes(1)) > 0;
+    }
+
+    private Map<String, Object> getDataFromServer(String siteId) throws IOException {
+        HttpURLConnection conn = getConn(Key.get(), siteId);
+
+        if (conn.getResponseCode() != 200)
+            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+
+        Map<String, Object> responseData = Parser.parse(conn.getInputStream());
+        conn.disconnect();
+        return responseData;
     }
 
     private void setHeaders(HttpServletResponse response) {
