@@ -26,7 +26,7 @@ public class CommonFieldsTest {
         responseData.put("DataAge", 22);
         result.addAll(CommonFields.get(responseData).values());
 
-        assertEquals(asList("2015-08-19T22:44:05", 22, "9530", "Stockholms södra"), result);
+        assertEquals(asList("2015-08-19T22:44:05", 22, "9530"), result);
     }
 
     @Test

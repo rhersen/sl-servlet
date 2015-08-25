@@ -15,9 +15,12 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import static java.time.LocalDateTime.*;
+import static java.time.LocalDateTime.now;
+import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
 
 public class DefaultServlet extends HttpServlet {
@@ -25,10 +28,18 @@ public class DefaultServlet extends HttpServlet {
     private final List<String> specific = asList("displaytime", "Destination",
             "expecteddatetime", "timetableddatetime");
     private Logger logger;
+    private ExecutorService executor;
 
     public void init() throws ServletException {
         super.init();
         logger = Logger.getAnonymousLogger();
+        executor = Executors.newSingleThreadExecutor();
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+        executor.shutdown();
     }
 
     protected void doPost(HttpServletRequest q, HttpServletResponse p)
@@ -38,6 +49,8 @@ public class DefaultServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String uri = request.getRequestURI();
+
+        logger.info(uri);
 
         if (uri.endsWith("ico")) {
             return;
@@ -68,24 +81,38 @@ public class DefaultServlet extends HttpServlet {
         @SuppressWarnings("unchecked") Map<String, Object>
                 found = (Map<String, Object>) cache.getAttribute(siteId);
 
-        Map<String, Object> responseData = found == null || isExpired(found) ? getDataFromServer(siteId) : found;
+        if (found == null || isExpired(found)) {
+            executor.submit(() -> {
+                logger.info("in thread");
+                Map<String, Object> r = DefaultServlet.this.getDataFromServer(siteId);
+                logger.info("got data");
+                cache.setAttribute(siteId, r);
+                logger.info("wrote cache");
+                return r;
+            });
+        }
 
-        if (found == null)
-            logger.info("not found");
-        else if (isExpired(found))
-            logger.info("expired");
-        else
-            logger.info("cached");
+        if (found == null) {
+            w.print("<a href=" + siteId + ">Uppdatera</a>");
+            return;
+        }
 
-        cache.setAttribute(siteId, responseData);
+        logger.info("cached");
 
         @SuppressWarnings("unchecked") Deque<Map<String, Object>>
-                trains = (Deque<Map<String, Object>>) responseData.get("Trains");
+                trains = (Deque<Map<String, Object>>) found.get("Trains");
 
         if (trains.isEmpty())
             w.print("<div>no trains for SiteId " + siteId + "</div>");
-        else
-            writeTrains(trains, CommonFields.get(responseData).values(), w);
+        else {
+            writeHeaders(trains, CommonFields.get(found).values(), w);
+
+            w.print("<a href=" + siteId + ">" + trains.getFirst().get("StopAreaName") + "</a>");
+
+            if (!trains.isEmpty()) {
+                writeTrains(trains, w);
+            }
+        }
     }
 
     private boolean isExpired(Map<String, Object> found) {
@@ -132,25 +159,24 @@ public class DefaultServlet extends HttpServlet {
         return conn;
     }
 
-    private void writeTrains(Deque<Map<String, Object>> trains, Collection<Object> commonFields,
-                             PrintWriter w) {
+    private void writeHeaders(Deque<Map<String, Object>> trains, Collection<Object> commonFields, PrintWriter w) {
         tag("title", trains.getFirst().get("StopAreaName"), w);
 
         writeCssHeader(w);
 
         for (Object value : commonFields)
             tag("span", value, w);
+    }
 
-        if (!trains.isEmpty()) {
-            w.print("<table>");
-            for (Map<String, Object> train : trains) {
-                w.print("<tr>");
-                for (String key : specific)
-                    tag("td", TrainFormatter.get(train, key), w);
-                w.println("</tr>");
-            }
-            w.println("</table>");
+    private void writeTrains(Deque<Map<String, Object>> trains, PrintWriter w) {
+        w.print("<table>");
+        for (Map<String, Object> train : trains) {
+            w.print("<tr>");
+            for (String key : specific)
+                tag("td", TrainFormatter.get(train, key), w);
+            w.println("</tr>");
         }
+        w.println("</table>");
     }
 
     private void writeCssHeader(PrintWriter w) {

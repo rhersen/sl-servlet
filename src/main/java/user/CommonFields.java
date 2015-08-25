@@ -2,8 +2,6 @@ package user;
 
 import java.util.*;
 
-import static java.util.Arrays.asList;
-
 public class CommonFields {
     static Map<String, Object> get(Map<String, Object> responseData) {
         Map<String, Object> r = new LinkedHashMap<>();
@@ -19,8 +17,8 @@ public class CommonFields {
             return r;
 
         Map<String, Object> first = trains.getFirst();
-        for (String key : asList("SiteId", "StopAreaName"))
-            r.put(key, first.get(key));
+        String key = "SiteId";
+        r.put(key, first.get(key));
         return r;
     }
 
