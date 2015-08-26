@@ -6,9 +6,11 @@ public class CommonFields {
     static Map<String, Object> get(Map<String, Object> responseData) {
         Map<String, Object> r = new LinkedHashMap<>();
 
-        for (Map.Entry<String, Object> e : responseData.entrySet())
-            if (e.getValue() instanceof String || e.getValue() instanceof Integer)
-                r.put(e.getKey(), e.getValue());
+        responseData
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() instanceof String || e.getValue() instanceof Integer)
+                .forEach(e -> r.put(e.getKey(), e.getValue()));
 
         @SuppressWarnings("unchecked") Deque<Map<String, Object>>
                 trains = (Deque<Map<String, Object>>) responseData.get("Trains");

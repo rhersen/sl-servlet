@@ -2,6 +2,7 @@ package user;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,8 +12,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -22,6 +21,7 @@ import java.util.logging.Logger;
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
+import static user.JsonData.*;
 
 public class DefaultServlet extends HttpServlet {
 
@@ -99,18 +99,15 @@ public class DefaultServlet extends HttpServlet {
 
         logger.info("cached");
 
-        @SuppressWarnings("unchecked") Deque<Map<String, Object>>
-                trains = (Deque<Map<String, Object>>) found.get("Trains");
-
-        if (trains.isEmpty())
+        if (!hasTrains(found))
             w.print("<div>no trains for SiteId " + siteId + "</div>");
         else {
-            writeHeaders(trains, CommonFields.get(found).values(), w);
+            writeHeaders(CommonFields.get(found).values(), w, getStopAreaName(found));
 
-            w.print("<a href=" + siteId + ">" + trains.getFirst().get("StopAreaName") + "</a>");
+            w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a>");
 
-            if (!trains.isEmpty()) {
-                writeTrains(trains, w);
+            if (hasTrains(found)) {
+                writeTrains(getTrains(found), w);
             }
         }
     }
@@ -133,7 +130,7 @@ public class DefaultServlet extends HttpServlet {
         return responseData;
     }
 
-    private void setHeaders(HttpServletResponse response) {
+    private void setHeaders(ServletResponse response) {
         response.setContentType("text/html");
         response.setCharacterEncoding("UTF-8");
     }
@@ -159,8 +156,8 @@ public class DefaultServlet extends HttpServlet {
         return conn;
     }
 
-    private void writeHeaders(Deque<Map<String, Object>> trains, Collection<Object> commonFields, PrintWriter w) {
-        tag("title", trains.getFirst().get("StopAreaName"), w);
+    private void writeHeaders(Iterable<Object> commonFields, PrintWriter w, Object stopAreaName) {
+        tag("title", stopAreaName, w);
 
         writeCssHeader(w);
 
@@ -168,7 +165,7 @@ public class DefaultServlet extends HttpServlet {
             tag("span", value, w);
     }
 
-    private void writeTrains(Deque<Map<String, Object>> trains, PrintWriter w) {
+    private void writeTrains(Iterable<Map<String, Object>> trains, PrintWriter w) {
         w.print("<table>");
         for (Map<String, Object> train : trains) {
             w.print("<tr>");
