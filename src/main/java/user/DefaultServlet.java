@@ -112,8 +112,8 @@ public class DefaultServlet extends HttpServlet {
         if (!hasTrains(found))
             w.print("<div>no trains for SiteId " + siteId + "</div>");
         else {
-            w.print("<div><a href='/'>Tillbaka</a></div>");
             writeHeaders(CommonFields.get(found).values(), w, getStopAreaName(found));
+            w.print("<div><a href='/'>Tillbaka</a></div>");
             w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a>");
             if (hasTrains(found))
                 writeTrains(getTrains(found), w);
