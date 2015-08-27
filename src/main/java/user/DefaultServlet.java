@@ -72,10 +72,7 @@ public class DefaultServlet extends HttpServlet {
 
         String siteId = SiteId.get(uri);
         if (siteId == null) {
-            writeCssHeader(w);
-            w.print("<title>");
-            w.print("s1");
-            w.print("</title>");
+            writeHeader(w, "s1");
             w.print("<table>");
             for (Integer id : asList(9325, 9510, 9000, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524)) {
                 Map<String, Object> cached = readFrom(cache, id.toString());
@@ -84,10 +81,14 @@ public class DefaultServlet extends HttpServlet {
                 w.print("<a href='" + id + "'>");
                 w.print(id);
                 w.print("</a>");
-                w.print("<td>");
-                w.print("<a href='" + id + "'>");
-                w.print(cached == null ? "-" : getStopAreaName(cached));
-                w.print("</a>");
+                if (cached != null) {
+                    w.print("<td>");
+                    w.print("<a href='" + id + "'>");
+                    w.print(getStopAreaName(cached));
+                    w.print("</a>");
+                    w.print("<td>");
+                    w.print(getAge(cached).getSeconds());
+                }
             }
             w.print("</table>");
             return;
@@ -107,9 +108,7 @@ public class DefaultServlet extends HttpServlet {
         }
 
         if (found == null) {
-            w.print("<title>");
-            w.print("Inget data");
-            w.print("</title>");
+            writeHeader(w, "Inget data");
             w.print("<a href=" + siteId + ">Uppdatera</a>");
             return;
         }
@@ -119,8 +118,9 @@ public class DefaultServlet extends HttpServlet {
         if (!hasTrains(found))
             w.print("<div>no trains for SiteId " + siteId + "</div>");
         else {
-            writeHeaders(CommonFields.get(found).values(), w, getStopAreaName(found));
-            w.print("<div><a href='/'>Tillbaka</a></div>");
+            writeHeader(w, getStopAreaName(found));
+            for (Object value : CommonFields.get(found).values())
+                tag("span", value, w);
             w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a>");
             if (hasTrains(found))
                 writeTrains(getTrains(found), w);
@@ -132,11 +132,14 @@ public class DefaultServlet extends HttpServlet {
         return (Map<String, Object>) cache.getAttribute(siteId);
     }
 
-    private boolean isExpired(Map<String, Object> found) {
+    private Duration getAge(Map<String, Object> found) {
         LocalDateTime latestUpdate = parse(found.get("LatestUpdate").toString());
         LocalDateTime now = now();
-        Duration age = Duration.between(latestUpdate, now);
-        return age.compareTo(Duration.ofMinutes(1)) > 0;
+        return Duration.between(latestUpdate, now);
+    }
+
+    private boolean isExpired(Map<String, Object> found) {
+        return getAge(found).compareTo(Duration.ofSeconds(60)) > 0;
     }
 
     private Map<String, Object> getDataFromServer(String siteId) throws IOException {
@@ -176,13 +179,10 @@ public class DefaultServlet extends HttpServlet {
         return conn;
     }
 
-    private void writeHeaders(Iterable<Object> commonFields, PrintWriter w, Object stopAreaName) {
+    private void writeHeader(PrintWriter w, Object stopAreaName) {
         tag("title", stopAreaName, w);
-
         writeCssHeader(w);
-
-        for (Object value : commonFields)
-            tag("span", value, w);
+        w.print("<div><a href='/'>Hem</a></div>");
     }
 
     private void writeTrains(Iterable<Map<String, Object>> trains, PrintWriter w) {
