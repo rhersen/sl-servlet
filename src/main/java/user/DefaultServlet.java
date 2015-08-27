@@ -84,13 +84,10 @@ public class DefaultServlet extends HttpServlet {
                 w.print("<a href='" + id + "'>");
                 w.print(id);
                 w.print("</a>");
-                w.print("</td>");
                 w.print("<td>");
                 w.print("<a href='" + id + "'>");
                 w.print(cached == null ? "-" : getStopAreaName(cached));
                 w.print("</a>");
-                w.print("</td>");
-                w.print("</tr>");
             }
             w.print("</table>");
             return;
@@ -110,6 +107,9 @@ public class DefaultServlet extends HttpServlet {
         }
 
         if (found == null) {
+            w.print("<title>");
+            w.print("Inget data");
+            w.print("</title>");
             w.print("<a href=" + siteId + ">Uppdatera</a>");
             return;
         }
@@ -191,7 +191,6 @@ public class DefaultServlet extends HttpServlet {
             w.print("<tr>");
             for (String key : specific)
                 tag("td", TrainFormatter.get(train, key), w);
-            w.println("</tr>");
         }
         w.println("</table>");
     }
