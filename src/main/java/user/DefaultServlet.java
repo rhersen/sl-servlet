@@ -65,6 +65,7 @@ public class DefaultServlet extends HttpServlet {
         }
 
         PrintWriter w = response.getWriter();
+        ServletContext cache = request.getSession().getServletContext();
 
         setHeaders(response);
         writeHeaders(w);
@@ -72,14 +73,23 @@ public class DefaultServlet extends HttpServlet {
         String siteId = SiteId.get(uri);
         if (siteId == null) {
             writeCssHeader(w);
-            for (Integer id : asList(9325, 9510, 9000, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524))
-                w.print("<div><a href='" + id + "'>" + id + "</a></div>");
+            w.print("<table>");
+            for (Integer id : asList(9325, 9510, 9000, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524)) {
+                Map<String, Object> cached = readFrom(cache, id.toString());
+                w.print("<tr>");
+                w.print("<td>");
+                w.print("<a href='" + id + "'>" + id + "</a>");
+                w.print("</td>");
+                w.print("<td>");
+                w.print(cached == null ? "-" : getStopAreaName(cached));
+                w.print("</td>");
+                w.print("</tr>");
+            }
+            w.print("</table>");
             return;
         }
 
-        ServletContext cache = request.getSession().getServletContext();
-        @SuppressWarnings("unchecked") Map<String, Object>
-                found = (Map<String, Object>) cache.getAttribute(siteId);
+        Map<String, Object> found = readFrom(cache, siteId);
 
         if (found == null || isExpired(found)) {
             executor.submit(() -> {
@@ -102,14 +112,17 @@ public class DefaultServlet extends HttpServlet {
         if (!hasTrains(found))
             w.print("<div>no trains for SiteId " + siteId + "</div>");
         else {
+            w.print("<div><a href='/'>Tillbaka</a></div>");
             writeHeaders(CommonFields.get(found).values(), w, getStopAreaName(found));
-
             w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a>");
-
-            if (hasTrains(found)) {
+            if (hasTrains(found))
                 writeTrains(getTrains(found), w);
-            }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> readFrom(ServletContext cache, String siteId) {
+        return (Map<String, Object>) cache.getAttribute(siteId);
     }
 
     private boolean isExpired(Map<String, Object> found) {
