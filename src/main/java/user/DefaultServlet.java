@@ -64,10 +64,10 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
-        PrintWriter w = response.getWriter();
         ServletContext cache = request.getSession().getServletContext();
 
         setHeaders(response);
+        PrintWriter w = response.getWriter();
         writeHeaders(w);
 
         String siteId = SiteId.get(uri);
