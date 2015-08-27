@@ -73,15 +73,22 @@ public class DefaultServlet extends HttpServlet {
         String siteId = SiteId.get(uri);
         if (siteId == null) {
             writeCssHeader(w);
+            w.print("<title>");
+            w.print("s1");
+            w.print("</title>");
             w.print("<table>");
             for (Integer id : asList(9325, 9510, 9000, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524)) {
                 Map<String, Object> cached = readFrom(cache, id.toString());
                 w.print("<tr>");
                 w.print("<td>");
-                w.print("<a href='" + id + "'>" + id + "</a>");
+                w.print("<a href='" + id + "'>");
+                w.print(id);
+                w.print("</a>");
                 w.print("</td>");
                 w.print("<td>");
+                w.print("<a href='" + id + "'>");
                 w.print(cached == null ? "-" : getStopAreaName(cached));
+                w.print("</a>");
                 w.print("</td>");
                 w.print("</tr>");
             }
