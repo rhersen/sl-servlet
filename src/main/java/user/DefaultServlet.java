@@ -61,8 +61,9 @@ public class DefaultServlet extends HttpServlet {
             PrintWriter w = response.getWriter();
             w.print("body {" +
                     "font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;" +
-                    "font-size: 24px;" +
-                    "}");
+                    "}" +
+                    "a {font-size: 24px;}"
+            );
             return;
         }
 
