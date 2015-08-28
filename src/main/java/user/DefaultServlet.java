@@ -59,8 +59,10 @@ public class DefaultServlet extends HttpServlet {
         if (uri.endsWith("css")) {
             response.setContentType("text/css");
             PrintWriter w = response.getWriter();
-            w.print("body {font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', " +
-                    "'Helvetica Neue', Arial, Helvetica, sans-serif;}");
+            w.print("body {" +
+                    "font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;" +
+                    "font-size: 24px;" +
+                    "}");
             return;
         }
 
