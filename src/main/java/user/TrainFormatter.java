@@ -1,8 +1,9 @@
 package user;
 
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 
@@ -35,6 +36,18 @@ public class TrainFormatter {
     }
 
     private static String getExpected(Map<String, Object> train) {
+        @SuppressWarnings("unchecked") Collection<Map<String, Object>>
+                deviations = (Collection<Map<String, Object>>) train.get("Deviations");
+        if (deviations != null && !deviations.isEmpty()) {
+            Collection<Map<String, Object>> filtered = deviations
+                    .stream()
+                    .filter(deviation -> Integer.valueOf(deviation.get("ImportanceLevel").toString()) < 5)
+                    .collect(Collectors.toList());
+            if (!filtered.isEmpty()) {
+                return filtered.iterator().next().get("Text").toString();
+            }
+        }
+
         Matcher m;
         String raw = getString(train, "ExpectedDateTime");
         for (Pattern pattern : asList(wholeMinutes, dateTime))

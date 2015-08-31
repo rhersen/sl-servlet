@@ -2,10 +2,12 @@ package user;
 
 import org.junit.Test;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
 
 public class TrainFormatterTest {
 
@@ -35,6 +37,32 @@ public class TrainFormatterTest {
         Map<String, Object> train = new HashMap<>();
         train.put("ExpectedDateTime", "2015-08-18T17:01:00");
         assertEquals("17:01", TrainFormatter.get(train, "expecteddatetime"));
+    }
+
+    @Test
+    public void showsDeviation() throws Exception {
+        Map<String, Object> deviation = new HashMap<>();
+        deviation.put("Text", "Inställd");
+        deviation.put("Consequence", "CANCELLED");
+        deviation.put("ImportanceLevel", 0);
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
+        train.put("ExpectedDateTime", "2015-08-18T17:00:00");
+        train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
+        assertEquals("Inställd", TrainFormatter.get(train, "expecteddatetime"));
+    }
+
+    @Test
+    public void butNotForImportanceLevel5() throws Exception {
+        Map<String, Object> deviation = new HashMap<>();
+        deviation.put("Text", "Resa förbi Arlanda C kräver både UL- och SL- biljett.");
+        deviation.put("Consequence", "INFORMATION");
+        deviation.put("ImportanceLevel", 5);
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
+        train.put("ExpectedDateTime", "2015-08-18T17:00:00");
+        train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
+        assertEquals("17:00", TrainFormatter.get(train, "expecteddatetime"));
     }
 
     @Test
