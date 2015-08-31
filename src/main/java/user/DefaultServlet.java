@@ -22,6 +22,7 @@ import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
 import static user.JsonData.*;
+import static user.Stations.*;
 
 public class DefaultServlet extends HttpServlet {
 
@@ -77,8 +78,8 @@ public class DefaultServlet extends HttpServlet {
         if (siteId == null) {
             writeHeader(w, "s1");
             w.print("<table>");
-            for (Integer id : asList(9325, 9510, 9000, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524)) {
-                Map<String, Object> cached = readFrom(cache, id.toString());
+            for (String id : getStations()) {
+                Map<String, Object> cached = readFrom(cache, id);
                 w.print("<tr>");
                 w.print("<td>");
                 w.print("<a href='" + id + "'>");
@@ -124,10 +125,21 @@ public class DefaultServlet extends HttpServlet {
             writeHeader(w, getStopAreaName(found));
             for (Object value : CommonFields.get(found).values())
                 tag("span", value, w);
-            w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a>");
+            writeLinkTo(south(siteId), cache, w);
+            w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a> ");
+            writeLinkTo(north(siteId), cache, w);
             if (hasTrains(found))
                 writeTrains(getTrains(found), w);
         }
+    }
+
+    private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
+        w.print("<a href=" + southId + ">" + getNameFor(southId, cache) + "</a> ");
+    }
+
+    private Object getNameFor(String southId, ServletContext cache) {
+        Map<String, Object> map = readFrom(cache, southId);
+        return map != null ? getStopAreaName(map) : southId;
     }
 
     @SuppressWarnings("unchecked")
