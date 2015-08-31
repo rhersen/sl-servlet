@@ -1,11 +1,13 @@
 package user;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 public class TrainFormatter {
 
@@ -39,13 +41,16 @@ public class TrainFormatter {
         @SuppressWarnings("unchecked") Collection<Map<String, Object>>
                 deviations = (Collection<Map<String, Object>>) train.get("Deviations");
         if (deviations != null && !deviations.isEmpty()) {
-            Collection<Map<String, Object>> filtered = deviations
+            Collection<Map<String, Object>> important = deviations
                     .stream()
-                    .filter(deviation -> Integer.valueOf(deviation.get("ImportanceLevel").toString()) < 5)
-                    .collect(Collectors.toList());
-            if (!filtered.isEmpty()) {
-                return filtered.iterator().next().get("Text").toString();
-            }
+                    .filter(deviation -> (Integer) deviation.get("ImportanceLevel") < 5)
+                    .collect(toList());
+            if (!important.isEmpty())
+                return important
+                        .stream()
+                        .map(deviation -> deviation.get("Text"))
+                        .map(Object::toString)
+                        .collect(joining());
         }
 
         Matcher m;
