@@ -99,17 +99,7 @@ public class DefaultServlet extends HttpServlet {
         }
 
         Map<String, Object> found = readFrom(cache, siteId);
-
-        if (found == null || isExpired(found)) {
-            executor.submit(() -> {
-                logger.info("in thread");
-                Map<String, Object> r = DefaultServlet.this.getDataFromServer(siteId);
-                logger.info("got data");
-                cache.setAttribute(siteId, r);
-                logger.info("wrote cache");
-                return r;
-            });
-        }
+        refreshIfNecessary(cache, siteId, found);
 
         if (found == null) {
             writeHeader(w, "Inget data");
@@ -135,13 +125,27 @@ public class DefaultServlet extends HttpServlet {
         }
     }
 
+    private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
+        if (found == null || isExpired(found)) {
+            executor.submit(() -> {
+                logger.info("in thread");
+                Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
+                logger.info("got data");
+                cache.setAttribute(id, r);
+                logger.info("wrote cache");
+                return r;
+            });
+        }
+    }
+
     private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
         w.print("<a href=" + southId + ">" + getNameFor(southId, cache) + "</a> ");
     }
 
-    private Object getNameFor(String southId, ServletContext cache) {
-        Map<String, Object> map = readFrom(cache, southId);
-        return map != null ? getStopAreaName(map) : southId;
+    private Object getNameFor(String siteId, ServletContext cache) {
+        Map<String, Object> found = readFrom(cache, siteId);
+        refreshIfNecessary(cache, siteId, found);
+        return found != null ? getStopAreaName(found) : siteId;
     }
 
     @SuppressWarnings("unchecked")
@@ -149,14 +153,14 @@ public class DefaultServlet extends HttpServlet {
         return (Map<String, Object>) cache.getAttribute(siteId);
     }
 
+    private boolean isExpired(Map<String, Object> found) {
+        return getAge(found).compareTo(Duration.ofSeconds(60)) > 0;
+    }
+
     private Duration getAge(Map<String, Object> found) {
         LocalDateTime latestUpdate = parse(found.get("LatestUpdate").toString());
         LocalDateTime now = now();
         return Duration.between(latestUpdate, now);
-    }
-
-    private boolean isExpired(Map<String, Object> found) {
-        return getAge(found).compareTo(Duration.ofSeconds(60)) > 0;
     }
 
     private Map<String, Object> getDataFromServer(String siteId) throws IOException {
