@@ -125,9 +125,11 @@ public class DefaultServlet extends HttpServlet {
             writeHeader(w, getStopAreaName(found));
             for (Object value : CommonFields.get(found).values())
                 tag("span", value, w);
+            w.print("<div>");
             writeLinkTo(south(siteId), cache, w);
             w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a> ");
             writeLinkTo(north(siteId), cache, w);
+            w.print("</div>");
             if (hasTrains(found))
                 writeTrains(getTrains(found), w);
         }
