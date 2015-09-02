@@ -61,9 +61,15 @@ public class DefaultServlet extends HttpServlet {
             response.setContentType("text/css");
             PrintWriter w = response.getWriter();
             w.print("body {" +
-                    "font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;" +
-                    "}" +
-                    "a {font-size: 24px;}"
+                            "font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', " +
+                            "'Helvetica Neue', Arial, Helvetica, sans-serif;" +
+                            "}" +
+                            "a {font-size: 24px;}" +
+                            "span.fresh {background-color: green}" +
+                            "span.recent {background-color: yellow}" +
+                            "span.stale {background-color: orange}" +
+                            "span.dead {background-color: red}" +
+                            ""
             );
             return;
         }
@@ -114,7 +120,7 @@ public class DefaultServlet extends HttpServlet {
         else {
             writeHeader(w, getStopAreaName(found));
             for (Object value : CommonFields.get(found).values())
-                tag("span", value, w);
+                tag("span", getAgeClass(found), value, w);
             w.print("<div>");
             writeLinkTo(south(siteId), cache, w);
             w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a> ");
@@ -123,6 +129,15 @@ public class DefaultServlet extends HttpServlet {
             if (hasTrains(found))
                 writeTrains(getTrains(found), w);
         }
+    }
+
+    private String getAgeClass(Map<String, Object> cached) {
+        Duration age = getAge(cached);
+        long seconds = age.getSeconds();
+        if (seconds < 120) return "fresh";
+        if (seconds > 1800) return "dead";
+        if (seconds > 500) return "stale";
+        return "recent";
     }
 
     private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
@@ -201,7 +216,7 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void writeHeader(PrintWriter w, Object stopAreaName) {
-        tag("title", stopAreaName, w);
+        tag("title", "", stopAreaName, w);
         writeCssHeader(w);
         w.print("<div><a href='/'>Hem</a></div>");
     }
@@ -211,7 +226,7 @@ public class DefaultServlet extends HttpServlet {
         for (Map<String, Object> train : trains) {
             w.print("<tr>");
             for (String key : specific)
-                tag("td", TrainFormatter.get(train, key), w);
+                tag("td", "", TrainFormatter.get(train, key), w);
         }
         w.println("</table>");
     }
@@ -220,8 +235,8 @@ public class DefaultServlet extends HttpServlet {
         w.print("<link rel='stylesheet' type='text/css' href='css'/>");
     }
 
-    private void tag(String tag, Object text, PrintWriter writer) {
-        writer.print("<" + tag + ">");
+    private void tag(String tag, String classes, Object text, PrintWriter writer) {
+        writer.print("<" + tag + " class='" + classes + "'>");
         writer.print(text);
         writer.println("</" + tag + ">");
     }
