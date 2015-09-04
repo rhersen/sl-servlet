@@ -6,8 +6,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
@@ -57,24 +56,12 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
+        ServletContext cache = request.getSession().getServletContext();
+
         if (uri.endsWith("css")) {
-            response.setContentType("text/css");
-            PrintWriter w = response.getWriter();
-            w.print("body {" +
-                            "font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', " +
-                            "'Helvetica Neue', Arial, Helvetica, sans-serif;" +
-                            "}" +
-                            "a {font-size: 24px;}" +
-                            "span.fresh {background-color: green}" +
-                            "span.recent {background-color: yellow}" +
-                            "span.stale {background-color: orange}" +
-                            "span.dead {background-color: red}" +
-                            ""
-            );
+            writeStream("text/css", cache.getResourceAsStream("/WEB-INF/style.css"), response);
             return;
         }
-
-        ServletContext cache = request.getSession().getServletContext();
 
         setHeaders(response);
         PrintWriter w = response.getWriter();
@@ -131,23 +118,35 @@ public class DefaultServlet extends HttpServlet {
         }
     }
 
+    private void writeStream(String contentType, InputStream stream, ServletResponse response)
+            throws IOException {
+        response.setContentType(contentType);
+        BufferedReader r = new BufferedReader(new InputStreamReader(stream));
+        PrintWriter w = response.getWriter();
+        String s;
+        while ((s = r.readLine()) != null)
+            w.print(s);
+    }
+
     private String getAgeClass(Map<String, Object> cached) {
         Duration age = getAge(cached);
         long seconds = age.getSeconds();
-        if (seconds < 120) return "fresh";
-        if (seconds > 1800) return "dead";
-        if (seconds > 500) return "stale";
+        if (seconds < 120)
+            return "fresh";
+        if (seconds > 1800)
+            return "dead";
+        if (seconds > 500)
+            return "stale";
         return "recent";
     }
 
     private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
         if (found == null || isExpired(found)) {
             executor.submit(() -> {
-                logger.info("in thread");
+                logger.info("getting " + id);
                 Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
-                logger.info("got data");
+                logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
                 cache.setAttribute(id, r);
-                logger.info("wrote cache");
                 return r;
             });
         }

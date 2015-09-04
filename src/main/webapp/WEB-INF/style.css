@@ -1,0 +1,23 @@
+body {
+    font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+
+a {
+    font-size: 24px;
+}
+
+span.fresh {
+    background-color: palegreen
+}
+
+span.recent {
+    background-color: yellow
+}
+
+span.stale {
+    background-color: sandybrown
+}
+
+span.dead {
+    background-color: red
+}
