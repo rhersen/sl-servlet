@@ -49,12 +49,10 @@ public class DefaultServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String uri = request.getRequestURI();
-
         logger.info(uri);
 
-        if (uri.endsWith("ico")) {
+        if (uri.endsWith("ico"))
             return;
-        }
 
         ServletContext cache = request.getSession().getServletContext();
 
@@ -69,25 +67,7 @@ public class DefaultServlet extends HttpServlet {
 
         String siteId = SiteId.get(uri);
         if (siteId == null) {
-            writeHeader(w, "s1");
-            w.print("<table>");
-            for (String id : getStations()) {
-                Map<String, Object> cached = readFrom(cache, id);
-                w.print("<tr>");
-                w.print("<td>");
-                w.print("<a href='" + id + "'>");
-                w.print(id);
-                w.print("</a>");
-                if (cached != null) {
-                    w.print("<td>");
-                    w.print("<a href='" + id + "'>");
-                    w.print(getStopAreaName(cached));
-                    w.print("</a>");
-                    w.print("<td>");
-                    w.print(getAge(cached).getSeconds());
-                }
-            }
-            w.print("</table>");
+            writeIndex(cache, w);
             return;
         }
 
@@ -95,27 +75,16 @@ public class DefaultServlet extends HttpServlet {
         refreshIfNecessary(cache, siteId, found);
 
         if (found == null) {
-            writeHeader(w, "Inget data");
-            w.print("<a href=" + siteId + ">Uppdatera</a>");
+            writeNotInCache(w, "Inget data", "<a href=" + siteId + ">Uppdatera</a>");
             return;
         }
 
         logger.info("cached");
 
         if (!hasTrains(found))
-            w.print("<div>no trains for SiteId " + siteId + "</div>");
-        else {
-            writeHeader(w, getStopAreaName(found));
-            for (Object value : CommonFields.get(found).values())
-                tag("span", getAgeClass(found), value, w);
-            w.print("<div>");
-            writeLinkTo(south(siteId), cache, w);
-            w.print("<a href=" + siteId + ">" + getStopAreaName(found) + "</a> ");
-            writeLinkTo(north(siteId), cache, w);
-            w.print("</div>");
-            if (hasTrains(found))
-                writeTrains(getTrains(found), w);
-        }
+            writeNoTrains(siteId, w);
+        else
+            writeStation(siteId, found, cache, w);
     }
 
     private void writeStream(String contentType, InputStream stream, ServletResponse response)
@@ -128,6 +97,59 @@ public class DefaultServlet extends HttpServlet {
             w.print(s);
     }
 
+    private void writeHeaders(PrintWriter w) {
+        w.print("<!doctype html>");
+        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
+        w.print("<meta");
+        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
+        w.print(" name=\"viewport\"");
+        w.print(">");
+        w.print("<meta charset=utf-8>");
+    }
+
+    private void writeIndex(ServletContext cache, PrintWriter w) {
+        writeHeader(w, "s1");
+        w.print("<table>");
+        for (String id : getStations()) {
+            Map<String, Object> cached = readFrom(cache, id);
+            w.print("<tr>");
+            w.print("<td>");
+            w.print("<a href='" + id + "'>");
+            w.print(id);
+            w.print("</a>");
+            if (cached != null) {
+                w.print("<td>");
+                w.print("<a href='" + id + "'>");
+                w.print(getStopAreaName(cached));
+                w.print("</a>");
+                w.print("<td>");
+                w.print(getAge(cached).getSeconds());
+            }
+        }
+        w.print("</table>");
+    }
+
+    private void writeNotInCache(PrintWriter w, String stopAreaName, String s) {
+        writeHeader(w, stopAreaName);
+        w.print(s);
+    }
+
+    private void writeNoTrains(String siteId, PrintWriter w) {
+        w.print("<div>no trains for SiteId " + siteId + "</div>");
+    }
+
+    private void writeStation(String siteId, Map<String, Object> site, ServletContext cache, PrintWriter w) {
+        writeHeader(w, getStopAreaName(site));
+        for (Object value : CommonFields.get(site).values())
+            tag("span", getAgeClass(site), value, w);
+        w.print("<div>");
+        writeLinkTo(south(siteId), cache, w);
+        w.print("<a href=" + siteId + ">" + getStopAreaName(site) + "</a> ");
+        writeLinkTo(north(siteId), cache, w);
+        w.print("</div>");
+        writeTrains(getTrains(site), w);
+    }
+
     private String getAgeClass(Map<String, Object> cached) {
         Duration age = getAge(cached);
         long seconds = age.getSeconds();
@@ -138,18 +160,6 @@ public class DefaultServlet extends HttpServlet {
         if (seconds > 500)
             return "stale";
         return "recent";
-    }
-
-    private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
-        if (found == null || isExpired(found)) {
-            executor.submit(() -> {
-                logger.info("getting " + id);
-                Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
-                logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
-                cache.setAttribute(id, r);
-                return r;
-            });
-        }
     }
 
     private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
@@ -167,12 +177,23 @@ public class DefaultServlet extends HttpServlet {
         return (Map<String, Object>) cache.getAttribute(siteId);
     }
 
-    private boolean isExpired(Map<String, Object> found) {
-        return getAge(found).compareTo(Duration.ofSeconds(60)) > 0;
+    private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
+        if (found == null || isExpired(found))
+            executor.submit(() -> {
+                logger.info("getting " + id);
+                Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
+                logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
+                cache.setAttribute(id, r);
+                return r;
+            });
     }
 
-    private Duration getAge(Map<String, Object> found) {
-        LocalDateTime latestUpdate = parse(found.get("LatestUpdate").toString());
+    private boolean isExpired(Map<String, Object> responseData) {
+        return getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
+    }
+
+    private Duration getAge(Map<String, Object> responseData) {
+        LocalDateTime latestUpdate = parse(responseData.get("LatestUpdate").toString());
         LocalDateTime now = now();
         return Duration.between(latestUpdate, now);
     }
@@ -191,16 +212,6 @@ public class DefaultServlet extends HttpServlet {
     private void setHeaders(ServletResponse response) {
         response.setContentType("text/html");
         response.setCharacterEncoding("UTF-8");
-    }
-
-    private void writeHeaders(PrintWriter w) {
-        w.print("<!doctype html>");
-        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
-        w.print("<meta");
-        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
-        w.print(" name=\"viewport\"");
-        w.print(">");
-        w.print("<meta charset=utf-8>");
     }
 
     private HttpURLConnection getConn(String key, String siteId) throws IOException {
