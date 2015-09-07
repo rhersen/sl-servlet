@@ -144,7 +144,9 @@ public class DefaultServlet extends HttpServlet {
             tag("span", getAgeClass(site), value, w);
         w.print("<div>");
         writeLinkTo(south(siteId), cache, w);
-        w.print("<a href=" + siteId + ">" + getStopAreaName(site) + "</a> ");
+        w.print("<a href=" + siteId + " class=" + getAgeClass(site) + ">");
+        w.print(getStopAreaName(site));
+        w.print("</a> ");
         writeLinkTo(north(siteId), cache, w);
         w.print("</div>");
         writeTrains(getTrains(site), w);

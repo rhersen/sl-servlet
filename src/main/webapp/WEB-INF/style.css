@@ -6,18 +6,18 @@ a {
     font-size: 24px;
 }
 
-span.fresh {
+.fresh {
     background-color: palegreen
 }
 
-span.recent {
+.recent {
     background-color: yellow
 }
 
-span.stale {
+.stale {
     background-color: sandybrown
 }
 
-span.dead {
+.dead {
     background-color: red
 }
