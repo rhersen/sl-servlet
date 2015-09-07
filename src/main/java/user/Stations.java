@@ -27,7 +27,7 @@ public class Stations {
     public static String north(String south) {
         List<String> stations = getStations();
         int index = stations.indexOf(south);
-        if (index > 1) {
+        if (index > 0) {
             return stations.get(index - 1);
         } else {
             return "" + (Integer.valueOf(south) + 1);

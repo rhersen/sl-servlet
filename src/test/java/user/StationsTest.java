@@ -23,7 +23,7 @@ public class StationsTest {
 
     @Test
     public void butSomeStationsAreNotInSequence() throws Exception {
-        assertEquals("9531", north("9529"));
+        assertEquals("9704", north("9325"));
     }
 
     @Test
