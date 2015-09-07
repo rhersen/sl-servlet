@@ -2,12 +2,13 @@ package user;
 
 import org.junit.Test;
 
+import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class TrainFormatterTest {
 
@@ -107,5 +108,23 @@ public class TrainFormatterTest {
         Map<String, Object> train = new HashMap<>();
         train.put("DisplayTime", "17:00");
         assertEquals("", TrainFormatter.get(train, "displaytime"));
+    }
+
+    @Test
+    public void remaining() throws Exception {
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
+        train.put("ExpectedDateTime", "2015-08-18T17:01:25");
+        assertNotEquals("", TrainFormatter.get(train, "remaining"));
+    }
+
+    @Test
+    public void remainingShowsSeconds() throws Exception {
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
+        train.put("ExpectedDateTime", "2015-08-18T17:01:25");
+        assertEquals("0", TrainFormatter.getRemaining(train, LocalDateTime.parse
+                ("2015-08-18T17:01:25")));
+        assertEquals("25", TrainFormatter.getRemaining(train, LocalDateTime.parse("2015-08-18T17:01")));
     }
 }

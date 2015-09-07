@@ -25,8 +25,8 @@ import static user.Stations.*;
 
 public class DefaultServlet extends HttpServlet {
 
-    private final List<String> specific = asList("displaytime", "Destination",
-            "expecteddatetime", "timetableddatetime");
+    private final List<String> specific =
+            asList("remaining", "displaytime", "Destination", "expecteddatetime", "timetableddatetime");
     private Logger logger;
     private ExecutorService executor;
 

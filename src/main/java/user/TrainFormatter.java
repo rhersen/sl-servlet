@@ -1,10 +1,14 @@
 package user;
 
+import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.time.Duration.between;
+import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -22,7 +26,14 @@ public class TrainFormatter {
             return getTimeTabled(train);
         if (key.equals("displaytime"))
             return getDisplay(train);
+        if (key.equals("remaining"))
+            return getRemaining(train, LocalDateTime.now());
         return getString(train, key);
+    }
+
+    public static String getRemaining(Map<String, Object> train, Temporal now) {
+        LocalDateTime expectedDateTime = parse(getString(train, "ExpectedDateTime"));
+        return Long.toString(between(now, expectedDateTime).getSeconds());
     }
 
     private static String getTimeTabled(Map<String, Object> train) {
