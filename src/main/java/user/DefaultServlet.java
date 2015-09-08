@@ -26,7 +26,8 @@ import static user.Stations.*;
 public class DefaultServlet extends HttpServlet {
 
     private final List<String> specific =
-            asList("remaining", "displaytime", "Destination", "expecteddatetime", "timetableddatetime");
+            asList("remaining", "displaytime", "Destination",
+                    "expecteddatetime", "timetableddatetime");
     private Logger logger;
     private ExecutorService executor;
 
@@ -138,7 +139,11 @@ public class DefaultServlet extends HttpServlet {
         w.print("<div>no trains for SiteId " + siteId + "</div>");
     }
 
-    private void writeStation(String siteId, Map<String, Object> site, ServletContext cache, PrintWriter w) {
+    private void writeStation(
+            String siteId,
+            Map<String, Object> site,
+            ServletContext cache,
+            PrintWriter w) {
         writeHeader(w, getStopAreaName(site));
         for (Object value : CommonFields.get(site).values())
             tag("span", getAgeClass(site), value, w);
