@@ -39,13 +39,9 @@ public class TrainFormatter {
     private static String getTimeTabled(Map<String, Object> train) {
         Matcher m;
         String raw = getString(train, "TimeTabledDateTime");
-        if (raw.equals(getString(train, "ExpectedDateTime"))) {
+        if (raw.equals(getString(train, "ExpectedDateTime")))
             return "";
-        }
-        for (Pattern pattern : asList(wholeMinutes, dateTime))
-            if ((m = pattern.matcher(raw)).matches())
-                return m.group(1);
-        return raw;
+        return (m = wholeMinutes.matcher(raw)).matches() ? m.group(1) : raw;
     }
 
     private static String getExpected(Map<String, Object> train) {
