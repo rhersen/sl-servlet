@@ -188,10 +188,13 @@ public class DefaultServlet extends HttpServlet {
         if (found == null || isExpired(found))
             executor.submit(() -> {
                 logger.info("getting " + id);
-                Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
-                logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
-                cache.setAttribute(id, r);
-                return r;
+                try {
+                    Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
+                    logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
+                    cache.setAttribute(id, r);
+                } catch (IOException e) {
+                    logger.warning(e.toString());
+                }
             });
     }
 
