@@ -83,9 +83,9 @@ public class TrainFormatterTest {
     @Test
     public void showsTimeTabledIfDifferentFromExpected() throws Exception {
         Map<String, Object> train = new HashMap<>();
-        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("ExpectedDateTime", "2015-08-18T17:01:25");
-        assertEquals("17:00", TrainFormatter.get(train, "timetableddatetime"));
+        train.put("TimeTabledDateTime", "2015-08-18T17:10:00");
+        train.put("ExpectedDateTime", "2015-08-18T17:11:25");
+        assertEquals("10", TrainFormatter.get(train, "timetableddatetime"));
     }
 
     @Test

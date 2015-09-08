@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.toList;
 public class TrainFormatter {
 
     private static final Pattern wholeMinutes = Pattern.compile(".+T(.+):00");
+    private static final Pattern onlyMinutes = Pattern.compile(".+T.+:(.+):00");
     private static final Pattern dateTime = Pattern.compile(".+T(.+)");
     private static final Pattern hhmm = Pattern.compile("\\d\\d:\\d\\d");
 
@@ -41,7 +42,7 @@ public class TrainFormatter {
         String raw = getString(train, "TimeTabledDateTime");
         if (raw.equals(getString(train, "ExpectedDateTime")))
             return "";
-        return (m = wholeMinutes.matcher(raw)).matches() ? m.group(1) : raw;
+        return (m = onlyMinutes.matcher(raw)).matches() ? m.group(1) : raw;
     }
 
     private static String getExpected(Map<String, Object> train) {
