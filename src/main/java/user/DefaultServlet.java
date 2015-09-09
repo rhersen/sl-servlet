@@ -11,7 +11,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,15 +18,11 @@ import java.util.logging.Logger;
 
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.parse;
-import static java.util.Arrays.asList;
 import static user.JsonData.*;
 import static user.Stations.*;
 
 public class DefaultServlet extends HttpServlet {
 
-    private final List<String> specific =
-            asList("remaining", "displaytime", "Destination",
-                    "expecteddatetime", "timetableddatetime");
     private Logger logger;
     private ExecutorService executor;
 
@@ -154,7 +149,7 @@ public class DefaultServlet extends HttpServlet {
         w.print("</a> ");
         writeLinkTo(north(siteId), cache, w);
         w.print("</div>");
-        writeTrains(getTrains(site), w);
+        writeTrains(getTrains(site), isExpired(site), w);
     }
 
     private String getAgeClass(Map<String, Object> cached) {
@@ -187,13 +182,17 @@ public class DefaultServlet extends HttpServlet {
     private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
         if (found == null || isExpired(found))
             executor.submit(() -> {
-                logger.info("getting " + id);
                 try {
-                    Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
-                    logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
-                    cache.setAttribute(id, r);
-                } catch (IOException e) {
-                    logger.warning(e.toString());
+                    Map<String, Object> checkAgain = readFrom(cache, id);
+                    boolean expired = checkAgain == null || isExpired(checkAgain);
+                    logger.info("getting " + id + " " + expired);
+                    if (expired) {
+                        Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
+                        logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
+                        cache.setAttribute(id, r);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             });
     }
@@ -241,12 +240,16 @@ public class DefaultServlet extends HttpServlet {
         w.print("<div><a href='/'>Hem</a></div>");
     }
 
-    private void writeTrains(Iterable<Map<String, Object>> trains, PrintWriter w) {
+    private void writeTrains(Iterable<Map<String, Object>> trains, boolean expired, PrintWriter w) {
         w.print("<table>");
         for (Map<String, Object> train : trains) {
             w.print("<tr>");
-            for (String key : specific)
-                tag("td", "", TrainFormatter.get(train, key), w);
+            tag("td", "", TrainFormatter.get(train, "remaining"), w);
+            if (!expired)
+                tag("td", "", TrainFormatter.get(train, "displaytime"), w);
+            tag("td", "", TrainFormatter.get(train, "Destination"), w);
+            tag("td", "", TrainFormatter.get(train, "expecteddatetime"), w);
+            tag("td", "", TrainFormatter.get(train, "timetableddatetime"), w);
         }
         w.println("</table>");
     }

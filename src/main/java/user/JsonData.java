@@ -5,7 +5,8 @@ import java.util.Map;
 
 public class JsonData {
     static Object getStopAreaName(Map<String, Object> map) {
-        return getTrains(map).getFirst().get("StopAreaName");
+        Deque<Map<String, Object>> trains = getTrains(map);
+        return trains.isEmpty() ? map.get("SiteId") : trains.getFirst().get("StopAreaName");
     }
 
     static boolean hasTrains(Map<String, Object> map) {
