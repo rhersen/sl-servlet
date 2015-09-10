@@ -34,7 +34,13 @@ public class TrainFormatter {
 
     public static String getRemaining(Map<String, Object> train, Temporal now) {
         LocalDateTime expectedDateTime = parse(getString(train, "ExpectedDateTime"));
-        return Long.toString(between(now, expectedDateTime).getSeconds());
+        long seconds = between(now, expectedDateTime).getSeconds();
+        if (seconds >= 600)
+            return String.format("%dm", seconds / 60);
+        else if (seconds >= 0)
+            return String.format("%d:%02d", seconds / 60, seconds % 60);
+        else
+            return String.format("%d", seconds);
     }
 
     private static String getTimeTabled(Map<String, Object> train) {

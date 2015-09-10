@@ -2,13 +2,15 @@ package user;
 
 import org.junit.Test;
 
-import java.time.LocalDateTime;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.time.LocalDateTime.parse;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static user.TrainFormatter.*;
 
 public class TrainFormatterTest {
 
@@ -16,28 +18,28 @@ public class TrainFormatterTest {
     public void nullReturnsEmptyString() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("ExpectedDateTime", "");
-        assertEquals("", TrainFormatter.get(train, "Destination"));
+        assertEquals("", get(train, "Destination"));
     }
 
     @Test
     public void getsValueFromTrain() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("ExpectedDateTime", "2015-08-18T17:29:00");
-        assertEquals("2015-08-18T17:29:00", TrainFormatter.get(train, "ExpectedDateTime"));
+        assertEquals("2015-08-18T17:29:00", get(train, "ExpectedDateTime"));
     }
 
     @Test
     public void removesDay() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("ExpectedDateTime", "2015-08-18T17:01:25");
-        assertEquals("17:01:25", TrainFormatter.get(train, "expecteddatetime"));
+        assertEquals("17:01:25", get(train, "expecteddatetime"));
     }
 
     @Test
     public void removesSecondsIfZero() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("ExpectedDateTime", "2015-08-18T17:01:00");
-        assertEquals("17:01", TrainFormatter.get(train, "expecteddatetime"));
+        assertEquals("17:01", get(train, "expecteddatetime"));
     }
 
     @Test
@@ -50,7 +52,7 @@ public class TrainFormatterTest {
         train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
         train.put("ExpectedDateTime", "2015-08-18T17:00:00");
         train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
-        assertEquals("Inställd", TrainFormatter.get(train, "expecteddatetime"));
+        assertEquals("Inställd", get(train, "expecteddatetime"));
     }
 
     @Test
@@ -63,21 +65,21 @@ public class TrainFormatterTest {
         train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
         train.put("ExpectedDateTime", "2015-08-18T17:00:00");
         train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
-        assertEquals("17:00", TrainFormatter.get(train, "expecteddatetime"));
+        assertEquals("17:00", get(train, "expecteddatetime"));
     }
 
     @Test
     public void doesntCrashIfNoDateTimeDelimiter() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("ExpectedDateTime", "17:01:25");
-        assertEquals("17:01:25", TrainFormatter.get(train, "expecteddatetime"));
+        assertEquals("17:01:25", get(train, "expecteddatetime"));
     }
 
     @Test
     public void doesntCrashIfNoExpectedDateTime() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("TimeTabledDateTime", "17:01:25");
-        assertEquals("", TrainFormatter.get(train, "expecteddatetime"));
+        assertEquals("", get(train, "expecteddatetime"));
     }
 
     @Test
@@ -85,7 +87,7 @@ public class TrainFormatterTest {
         Map<String, Object> train = new HashMap<>();
         train.put("TimeTabledDateTime", "2015-08-18T17:10:00");
         train.put("ExpectedDateTime", "2015-08-18T17:11:25");
-        assertEquals("10", TrainFormatter.get(train, "timetableddatetime"));
+        assertEquals("10", get(train, "timetableddatetime"));
     }
 
     @Test
@@ -93,21 +95,21 @@ public class TrainFormatterTest {
         Map<String, Object> train = new HashMap<>();
         train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
         train.put("ExpectedDateTime", "2015-08-18T17:00:00");
-        assertEquals("", TrainFormatter.get(train, "timetableddatetime"));
+        assertEquals("", get(train, "timetableddatetime"));
     }
 
     @Test
     public void showsDisplayTimeIfRelative() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("DisplayTime", "7 min");
-        assertEquals("7 min", TrainFormatter.get(train, "displaytime"));
+        assertEquals("7 min", get(train, "displaytime"));
     }
 
     @Test
     public void showsEmptyDisplayTimeIfAbsolute() throws Exception {
         Map<String, Object> train = new HashMap<>();
         train.put("DisplayTime", "17:00");
-        assertEquals("", TrainFormatter.get(train, "displaytime"));
+        assertEquals("", get(train, "displaytime"));
     }
 
     @Test
@@ -115,16 +117,19 @@ public class TrainFormatterTest {
         Map<String, Object> train = new HashMap<>();
         train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
         train.put("ExpectedDateTime", "2015-08-18T17:01:25");
-        assertNotEquals("", TrainFormatter.get(train, "remaining"));
+        assertNotEquals("", get(train, "remaining"));
     }
 
     @Test
     public void remainingShowsSeconds() throws Exception {
         Map<String, Object> train = new HashMap<>();
-        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("ExpectedDateTime", "2015-08-18T17:01:25");
-        assertEquals("0", TrainFormatter.getRemaining(train, LocalDateTime.parse
-                ("2015-08-18T17:01:25")));
-        assertEquals("25", TrainFormatter.getRemaining(train, LocalDateTime.parse("2015-08-18T17:01")));
+        train.put("ExpectedDateTime", "2015-08-18T17:01:30");
+        assertEquals("-30", getRemaining(train, parse("2015-08-18T17:02")));
+        assertEquals("-1", getRemaining(train, parse("2015-08-18T17:01:31")));
+        assertEquals("0:00", getRemaining(train, parse("2015-08-18T17:01:30")));
+        assertEquals("0:30", getRemaining(train, parse("2015-08-18T17:01")));
+        assertEquals("9:30", getRemaining(train, parse("2015-08-18T16:52")));
+        assertEquals("9:59", getRemaining(train, parse("2015-08-18T16:51:31")));
+        assertEquals("10m", getRemaining(train, parse("2015-08-18T16:51:30")));
     }
 }

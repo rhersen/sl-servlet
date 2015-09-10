@@ -17,20 +17,18 @@ public class Stations {
     public static String south(String north) {
         List<String> stations = getStations();
         int index = stations.indexOf(north);
-        if (index != -1 && index != stations.size() - 1) {
+        if (index != -1 && index != stations.size() - 1)
             return stations.get(index + 1);
-        } else {
+        else
             return "" + (Integer.valueOf(north) - 1);
-        }
     }
 
     public static String north(String south) {
         List<String> stations = getStations();
         int index = stations.indexOf(south);
-        if (index > 0) {
+        if (index > 0)
             return stations.get(index - 1);
-        } else {
+        else
             return "" + (Integer.valueOf(south) + 1);
-        }
     }
 }
