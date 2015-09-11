@@ -89,10 +89,15 @@ public class DefaultServlet extends HttpServlet {
     private void writeStream(String contentType, InputStream stream, ServletResponse response)
             throws IOException {
         response.setContentType(contentType);
+        int len = 1 << 11;
+        byte[] b = new byte[len];
         ServletOutputStream w = response.getOutputStream();
         int read;
-        while ((read = stream.read()) != -1)
-            w.write(read);
+        while ((read = stream.read(b, 0, len)) != -1) {
+            w.write(b, 0, read);
+            logger.info(String.format("read %d bytes", read));
+        }
+        logger.info("done");
     }
 
     private void writeHeaders(PrintWriter w) {
