@@ -120,14 +120,14 @@ public class DefaultServlet extends HttpServlet {
             w.print("<a href='" + id + "'>");
             w.print(id);
             w.print("</a>");
-            if (cached != null) {
-                w.print("<td>");
-                w.print("<a href='" + id + "'>");
+            w.print("<td>");
+            w.print("<a href='" + id + "'>");
+            if (cached != null)
                 w.print(getStopAreaName(cached));
-                w.print("</a>");
-                w.print("<td>");
+            w.print("</a>");
+            w.print("<td>");
+            if (cached != null)
                 w.print(getAge(cached).getSeconds());
-            }
         }
         w.print("</table>");
     }
