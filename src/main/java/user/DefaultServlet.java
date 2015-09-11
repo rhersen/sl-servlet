@@ -2,6 +2,7 @@ package user;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -47,13 +48,15 @@ public class DefaultServlet extends HttpServlet {
         String uri = request.getRequestURI();
         logger.info(uri);
 
-        if (uri.endsWith("ico"))
-            return;
-
         ServletContext cache = request.getSession().getServletContext();
 
+        if (uri.endsWith("ico")) {
+            writeStream("image/png", cache.getResourceAsStream("/WEB-INF/web.ico"), response);
+            return;
+        }
+
         if (uri.endsWith("css")) {
-            writeStream("text/css", cache.getResourceAsStream("/WEB-INF/style.css"), response);
+            writeStream("text/css", cache.getResourceAsStream("/WEB-INF/web.css"), response);
             return;
         }
 
@@ -86,11 +89,10 @@ public class DefaultServlet extends HttpServlet {
     private void writeStream(String contentType, InputStream stream, ServletResponse response)
             throws IOException {
         response.setContentType(contentType);
-        BufferedReader r = new BufferedReader(new InputStreamReader(stream));
-        PrintWriter w = response.getWriter();
-        String s;
-        while ((s = r.readLine()) != null)
-            w.print(s);
+        ServletOutputStream w = response.getOutputStream();
+        int read;
+        while ((read = stream.read()) != -1)
+            w.write(read);
     }
 
     private void writeHeaders(PrintWriter w) {
