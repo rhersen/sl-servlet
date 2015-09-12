@@ -2,16 +2,19 @@ package user;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,6 +29,7 @@ public class DefaultServlet extends HttpServlet {
 
     private Logger logger;
     private ExecutorService executor;
+    private byte[] favicon;
 
     public void init() throws ServletException {
         super.init();
@@ -51,7 +55,10 @@ public class DefaultServlet extends HttpServlet {
         ServletContext cache = request.getSession().getServletContext();
 
         if (uri.endsWith("ico")) {
-            writeStream("image/png", cache.getResourceAsStream("/WEB-INF/web.ico"), response);
+            response.setContentType("image/png");
+            if (favicon == null)
+                favicon = getByteArray(cache.getResourceAsStream("/WEB-INF/web.ico"));
+            response.getOutputStream().write(favicon);
             return;
         }
 
@@ -89,15 +96,24 @@ public class DefaultServlet extends HttpServlet {
     private void writeStream(String contentType, InputStream stream, ServletResponse response)
             throws IOException {
         response.setContentType(contentType);
-        int len = 1 << 11;
-        byte[] b = new byte[len];
-        ServletOutputStream w = response.getOutputStream();
+        byte[] array = getByteArray(stream);
+        response.getOutputStream().write(array);
+    }
+
+    private byte[] getByteArray(InputStream stream) throws IOException {
+        List<Byte> list = getByteList(stream);
+        byte[] array = new byte[list.size()];
+        for (int i = 0; i < array.length; i++)
+            array[i] = list.get(i);
+        return array;
+    }
+
+    private List<Byte> getByteList(InputStream stream) throws IOException {
+        List<Byte> list = new ArrayList<>();
         int read;
-        while ((read = stream.read(b, 0, len)) != -1) {
-            w.write(b, 0, read);
-            logger.info(String.format("read %d bytes", read));
-        }
-        logger.info("done");
+        while ((read = stream.read()) != -1)
+            list.add((byte) read);
+        return list;
     }
 
     private void writeHeaders(PrintWriter w) {
