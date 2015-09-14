@@ -64,11 +64,12 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
+        if (css == null)
+            css = getCssString(cache.getResourceAsStream("/WEB-INF/web.css"));
+
         if (uri.endsWith("css")) {
             response.setContentType("text/css");
             response.setCharacterEncoding("UTF-8");
-            if (css == null)
-                css = getCssString(cache.getResourceAsStream("/WEB-INF/web.css"));
             response.getWriter().write(css);
             return;
         }
@@ -286,7 +287,9 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void writeCssHeader(PrintWriter w) {
-        w.print("<link rel='stylesheet' type='text/css' href='css'/>");
+        w.print("<style>");
+        w.print(css);
+        w.print("</style>");
     }
 
     private void tag(String tag, String classes, Object text, PrintWriter writer) {
