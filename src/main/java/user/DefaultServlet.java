@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
+import static java.lang.String.format;
 import static java.time.LocalDateTime.now;
 import static java.time.LocalDateTime.parse;
 import static user.JsonData.*;
@@ -88,7 +89,7 @@ public class DefaultServlet extends HttpServlet {
         refreshIfNecessary(cache, siteId, found);
 
         if (found == null) {
-            writeNotInCache(w, "Inget data", "<a href=" + siteId + ">Uppdatera</a>");
+            writeNotInCache(w, "Inget data", format("<a href=%s>Uppdatera</a>", siteId));
             return;
         }
 
@@ -142,11 +143,11 @@ public class DefaultServlet extends HttpServlet {
             Map<String, Object> cached = readFrom(cache, id);
             w.print("<tr>");
             w.print("<td>");
-            w.print("<a href='" + id + "'>");
+            w.print(format("<a href='%s'>", id));
             w.print(id);
             w.print("</a>");
             w.print("<td>");
-            w.print("<a href='" + id + "'>");
+            w.print(format("<a href='%s'>", id));
             if (cached != null)
                 w.print(getStopAreaName(cached));
             w.print("</a>");
@@ -163,7 +164,7 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void writeNoTrains(String siteId, PrintWriter w) {
-        w.print("<div>no trains for SiteId " + siteId + "</div>");
+        w.print(format("<div>no trains for SiteId %s</div>", siteId));
     }
 
     private void writeStation(
@@ -176,7 +177,7 @@ public class DefaultServlet extends HttpServlet {
             tag("span", getAgeClass(site), value, w);
         w.print("<div>");
         writeLinkTo(south(siteId), cache, w);
-        w.print("<a href=" + siteId + " class=" + getAgeClass(site) + ">");
+        w.print(format("<a href=%s class=%s>", siteId, getAgeClass(site)));
         w.print(getStopAreaName(site));
         w.print("</a> ");
         writeLinkTo(north(siteId), cache, w);
@@ -197,7 +198,7 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
-        w.print("<a href=" + southId + ">" + getNameFor(southId, cache) + "</a> ");
+        w.print(format("<a href=%s>%s</a> ", southId, getNameFor(southId, cache)));
     }
 
     private Object getNameFor(String siteId, ServletContext cache) {
@@ -217,10 +218,9 @@ public class DefaultServlet extends HttpServlet {
                 try {
                     Map<String, Object> checkAgain = readFrom(cache, id);
                     boolean expired = checkAgain == null || isExpired(checkAgain);
-                    logger.info("getting " + id + " " + expired);
                     if (expired) {
                         Map<String, Object> r = DefaultServlet.this.getDataFromServer(id);
-                        logger.info("caching " + getStopAreaName(r) + r.get("LatestUpdate"));
+                        logger.info("caching " + getStopAreaName(r));
                         cache.setAttribute(id, r);
                     }
                 } catch (Exception e) {
@@ -243,7 +243,8 @@ public class DefaultServlet extends HttpServlet {
         HttpURLConnection conn = getConn(Key.get(), siteId);
 
         if (conn.getResponseCode() != 200)
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+            throw new RuntimeException(
+                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
 
         Map<String, Object> responseData = Parser.parse(conn.getInputStream());
         conn.disconnect();
@@ -256,10 +257,9 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private HttpURLConnection getConn(String key, String siteId) throws IOException {
-        URL url = new URL("http://api.sl.se/api2/realtimedepartures.json" +
-                "?key=" + key +
-                "&SiteId=" + siteId +
-                "&TimeWindow=60");
+        URL url = new URL(format(
+                "http://api.sl.se/api2/realtimedepartures.json?key=%s&SiteId=%s&TimeWindow=60",
+                key, siteId));
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Accept", "application/json");
@@ -293,9 +293,9 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void tag(String tag, String classes, Object text, PrintWriter writer) {
-        writer.print("<" + tag + " class='" + classes + "'>");
+        writer.print(format("<%s class='%s'>", tag, classes));
         writer.print(text);
-        writer.println("</" + tag + ">");
+        writer.println(format("</%s>", tag));
     }
 
 }
