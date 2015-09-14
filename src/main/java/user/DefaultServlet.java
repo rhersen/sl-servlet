@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -30,6 +31,7 @@ public class DefaultServlet extends HttpServlet {
     private Logger logger;
     private ExecutorService executor;
     private byte[] favicon;
+    private String css;
 
     public void init() throws ServletException {
         super.init();
@@ -63,7 +65,11 @@ public class DefaultServlet extends HttpServlet {
         }
 
         if (uri.endsWith("css")) {
-            writeStream("text/css", cache.getResourceAsStream("/WEB-INF/web.css"), response);
+            response.setContentType("text/css");
+            response.setCharacterEncoding("UTF-8");
+            if (css == null)
+                css = getCssString(cache.getResourceAsStream("/WEB-INF/web.css"));
+            response.getWriter().write(css);
             return;
         }
 
@@ -93,11 +99,13 @@ public class DefaultServlet extends HttpServlet {
             writeStation(siteId, found, cache, w);
     }
 
-    private void writeStream(String contentType, InputStream stream, ServletResponse response)
-            throws IOException {
-        response.setContentType(contentType);
-        byte[] array = getByteArray(stream);
-        response.getOutputStream().write(array);
+    private String getCssString(InputStream stream) throws IOException {
+        InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
+        StringBuilder list = new StringBuilder();
+        int read;
+        while ((read = reader.read()) != -1)
+            list.append((char) read);
+        return list.toString();
     }
 
     private byte[] getByteArray(InputStream stream) throws IOException {
