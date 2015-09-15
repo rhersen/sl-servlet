@@ -85,8 +85,7 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
-        Map<String, Object> found = readFrom(cache, siteId);
-        refreshIfNecessary(cache, siteId, found);
+        Map<String, Object> found = getFrom(cache, siteId);
 
         if (found == null) {
             writeNotInCache(w, "Inget data", format("<a href=%s>Uppdatera</a>", siteId));
@@ -101,6 +100,14 @@ public class DefaultServlet extends HttpServlet {
             writeStation(siteId, found, cache, w);
     }
 
+    private byte[] getByteArray(InputStream stream) throws IOException {
+        List<Byte> list = getByteList(stream);
+        byte[] array = new byte[list.size()];
+        for (int i = 0; i < array.length; i++)
+            array[i] = list.get(i);
+        return array;
+    }
+
     private String getCssString(InputStream stream) throws IOException {
         InputStreamReader reader = new InputStreamReader(stream, "UTF-8");
         StringBuilder list = new StringBuilder();
@@ -110,20 +117,9 @@ public class DefaultServlet extends HttpServlet {
         return list.toString();
     }
 
-    private byte[] getByteArray(InputStream stream) throws IOException {
-        List<Byte> list = getByteList(stream);
-        byte[] array = new byte[list.size()];
-        for (int i = 0; i < array.length; i++)
-            array[i] = list.get(i);
-        return array;
-    }
-
-    private List<Byte> getByteList(InputStream stream) throws IOException {
-        List<Byte> list = new ArrayList<>();
-        int read;
-        while ((read = stream.read()) != -1)
-            list.add((byte) read);
-        return list;
+    private void setHeaders(ServletResponse response) {
+        response.setContentType("text/html");
+        response.setCharacterEncoding("UTF-8");
     }
 
     private void writeHeaders(PrintWriter w) {
@@ -158,6 +154,12 @@ public class DefaultServlet extends HttpServlet {
         w.print("</table>");
     }
 
+    private Map<String, Object> getFrom(ServletContext cache, String siteId) {
+        Map<String, Object> found = readFrom(cache, siteId);
+        refreshIfNecessary(cache, siteId, found);
+        return found;
+    }
+
     private void writeNotInCache(PrintWriter w, String stopAreaName, String s) {
         writeHeader(w, stopAreaName);
         w.print(s);
@@ -185,31 +187,31 @@ public class DefaultServlet extends HttpServlet {
         writeTrains(getTrains(site), isExpired(site), w);
     }
 
-    private String getAgeClass(Map<String, Object> cached) {
-        Duration age = getAge(cached);
-        long seconds = age.getSeconds();
-        if (seconds < 120)
-            return "fresh";
-        if (seconds > 1800)
-            return "dead";
-        if (seconds > 500)
-            return "stale";
-        return "recent";
+    private List<Byte> getByteList(InputStream stream) throws IOException {
+        List<Byte> list = new ArrayList<>();
+        int read;
+        while ((read = stream.read()) != -1)
+            list.add((byte) read);
+        return list;
     }
 
-    private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
-        w.print(format("<a href=%s>%s</a> ", southId, getNameFor(southId, cache)));
-    }
+//level 3
 
-    private Object getNameFor(String siteId, ServletContext cache) {
-        Map<String, Object> found = readFrom(cache, siteId);
-        refreshIfNecessary(cache, siteId, found);
-        return found != null ? getStopAreaName(found) : siteId;
+    private void writeHeader(PrintWriter w, Object stopAreaName) {
+        tag("title", "", stopAreaName, w);
+        writeCssHeader(w);
+        w.print("<div><a href='/'>Hem</a></div>");
     }
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> readFrom(ServletContext cache, String siteId) {
         return (Map<String, Object>) cache.getAttribute(siteId);
+    }
+
+    private Duration getAge(Map<String, Object> responseData) {
+        LocalDateTime latestUpdate = parse(responseData.get("LatestUpdate").toString());
+        LocalDateTime now = now();
+        return Duration.between(latestUpdate, now);
     }
 
     private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
@@ -229,47 +231,26 @@ public class DefaultServlet extends HttpServlet {
             });
     }
 
-    private boolean isExpired(Map<String, Object> responseData) {
-        return getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
+    private String getAgeClass(Map<String, Object> cached) {
+        Duration age = getAge(cached);
+        long seconds = age.getSeconds();
+        if (seconds < 120)
+            return "fresh";
+        if (seconds > 1800)
+            return "dead";
+        if (seconds > 500)
+            return "stale";
+        return "recent";
     }
 
-    private Duration getAge(Map<String, Object> responseData) {
-        LocalDateTime latestUpdate = parse(responseData.get("LatestUpdate").toString());
-        LocalDateTime now = now();
-        return Duration.between(latestUpdate, now);
+    private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
+        w.print(format("<a href=%s>%s</a> ", southId, getNameFor(southId, cache)));
     }
 
-    private Map<String, Object> getDataFromServer(String siteId) throws IOException {
-        HttpURLConnection conn = getConn(Key.get(), siteId);
-
-        if (conn.getResponseCode() != 200)
-            throw new RuntimeException(
-                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
-
-        Map<String, Object> responseData = Parser.parse(conn.getInputStream());
-        conn.disconnect();
-        return responseData;
-    }
-
-    private void setHeaders(ServletResponse response) {
-        response.setContentType("text/html");
-        response.setCharacterEncoding("UTF-8");
-    }
-
-    private HttpURLConnection getConn(String key, String siteId) throws IOException {
-        URL url = new URL(format(
-                "http://api.sl.se/api2/realtimedepartures.json?key=%s&SiteId=%s&TimeWindow=60",
-                key, siteId));
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Accept", "application/json");
-        return conn;
-    }
-
-    private void writeHeader(PrintWriter w, Object stopAreaName) {
-        tag("title", "", stopAreaName, w);
-        writeCssHeader(w);
-        w.print("<div><a href='/'>Hem</a></div>");
+    private void tag(String tag, String classes, Object text, PrintWriter writer) {
+        writer.print(format("<%s class='%s'>", tag, classes));
+        writer.print(text);
+        writer.println(format("</%s>", tag));
     }
 
     private void writeTrains(Iterable<Map<String, Object>> trains, boolean expired, PrintWriter w) {
@@ -286,16 +267,42 @@ public class DefaultServlet extends HttpServlet {
         w.println("</table>");
     }
 
+    private boolean isExpired(Map<String, Object> responseData) {
+        return getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
+    }
+
+    //level 4
+
     private void writeCssHeader(PrintWriter w) {
         w.print("<style>");
         w.print(css);
         w.print("</style>");
     }
 
-    private void tag(String tag, String classes, Object text, PrintWriter writer) {
-        writer.print(format("<%s class='%s'>", tag, classes));
-        writer.print(text);
-        writer.println(format("</%s>", tag));
+    private Map<String, Object> getDataFromServer(String siteId) throws IOException {
+        HttpURLConnection conn = getConn(Key.get(), siteId);
+
+        if (conn.getResponseCode() != 200)
+            throw new RuntimeException(
+                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
+
+        Map<String, Object> responseData = Parser.parse(conn.getInputStream());
+        conn.disconnect();
+        return responseData;
+    }
+
+    private Object getNameFor(String siteId, ServletContext cache) {
+        Map<String, Object> found = getFrom(cache, siteId);
+        return found != null ? getStopAreaName(found) : siteId;
+    }
+    private HttpURLConnection getConn(String key, String siteId) throws IOException {
+        URL url = new URL(format(
+                "http://api.sl.se/api2/realtimedepartures.json?key=%s&SiteId=%s&TimeWindow=60",
+                key, siteId));
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("Accept", "application/json");
+        return conn;
     }
 
 }
