@@ -9,7 +9,7 @@ public class Utils {
     static List<Byte> getByteList(InputStream stream) throws IOException {
         List<Byte> list = new ArrayList<>();
         int read;
-        while ((read = stream.read()) == -1)
+        while ((read = stream.read()) != -1)
             list.add((byte) read);
         return list;
     }
