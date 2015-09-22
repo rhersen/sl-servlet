@@ -14,7 +14,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -101,7 +100,7 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private byte[] getByteArray(InputStream stream) throws IOException {
-        List<Byte> list = getByteList(stream);
+        List<Byte> list = Utils.getByteList(stream);
         byte[] array = new byte[list.size()];
         for (int i = 0; i < array.length; i++)
             array[i] = list.get(i);
@@ -185,14 +184,6 @@ public class DefaultServlet extends HttpServlet {
         writeLinkTo(north(siteId), cache, w);
         w.print("</div>");
         writeTrains(getTrains(site), isExpired(site), w);
-    }
-
-    private List<Byte> getByteList(InputStream stream) throws IOException {
-        List<Byte> list = new ArrayList<>();
-        int read;
-        while ((read = stream.read()) != -1)
-            list.add((byte) read);
-        return list;
     }
 
     private void writeHeader(PrintWriter w, Object stopAreaName) {
