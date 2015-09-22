@@ -4,7 +4,7 @@ pull:
 	git pull
 
 undeploy:
-	rm -R /opt/apache-tomcat-8.0.24/webapps/sl*
+	rm -R /opt/apache-tomcat-8.0.24/webapps/sl
 
 build/libs/sl-servlet-1.0-SNAPSHOT.war:	src/main/java/user/DefaultServlet.java
 	gradle war
