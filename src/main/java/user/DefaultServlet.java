@@ -88,7 +88,7 @@ public class DefaultServlet extends HttpServlet {
         Map<String, Object> found = getFrom(cache, siteId);
 
         if (found == null) {
-            writeNotInCache(w, "Inget data", format("<a href=%s>Uppdatera</a>", siteId));
+            writeNotInCache(w, "Ingen data", format("<a href=%s>Uppdatera</a>", siteId));
             return;
         }
 
