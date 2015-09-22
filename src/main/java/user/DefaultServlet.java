@@ -213,14 +213,16 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
-        if (found == null || isExpired(found))
+        if (isExpired(found))
             executor.submit(() -> {
                 try {
                     Map<String, Object> checkAgain = readFrom(cache, id);
                     boolean expired = checkAgain == null || isExpired(checkAgain);
                     if (expired) {
                         URL url = new URL(format(
-                                "http://api.sl.se/api2/realtimedepartures.json?key=%s&SiteId=%s&TimeWindow=60",
+                                "http://api.sl.se/api2" +
+                                        "/realtimedepartures.json" +
+                                        "?key=%s&SiteId=%s&TimeWindow=60",
                                 Key.get(), id));
                         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                         conn.setRequestMethod("GET");
@@ -280,6 +282,6 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private boolean isExpired(Map<String, Object> responseData) {
-        return getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
+        return responseData == null || getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
     }
 }
