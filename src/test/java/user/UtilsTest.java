@@ -17,6 +17,6 @@ public class UtilsTest {
 
         assertEquals(5, result.size());
         for (int i = 0; i < bytes.length; i++)
-            assertEquals((Byte) bytes[i], result.get(0));
+            assertEquals((Byte) bytes[i], result.get(i));
     }
 }
