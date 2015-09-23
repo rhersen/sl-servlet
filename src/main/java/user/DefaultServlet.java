@@ -13,7 +13,6 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -21,10 +20,9 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
-import static java.time.LocalDateTime.now;
-import static java.time.LocalDateTime.parse;
 import static user.JsonData.*;
 import static user.Stations.*;
+import static user.Utils.*;
 
 public class DefaultServlet extends HttpServlet {
 
@@ -100,7 +98,7 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private byte[] getByteArray(InputStream stream) throws IOException {
-        List<Byte> list = Utils.getByteList(stream);
+        List<Byte> list = getByteList(stream);
         byte[] array = new byte[list.size()];
         for (int i = 0; i < array.length; i++)
             array[i] = list.get(i);
@@ -195,12 +193,6 @@ public class DefaultServlet extends HttpServlet {
     @SuppressWarnings("unchecked")
     private Map<String, Object> readFrom(ServletContext cache, String siteId) {
         return (Map<String, Object>) cache.getAttribute(siteId);
-    }
-
-    private Duration getAge(Map<String, Object> responseData) {
-        LocalDateTime latestUpdate = parse(responseData.get("LatestUpdate").toString());
-        LocalDateTime now = now();
-        return Duration.between(latestUpdate, now);
     }
 
     private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
