@@ -8,7 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static java.time.LocalDateTime.now;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static user.Utils.*;
 
 public class UtilsTest {
@@ -32,5 +34,19 @@ public class UtilsTest {
         Duration result = getAge(responseData);
 
         assertFalse(result.isNegative());
+    }
+
+    @Test
+    public void testGetAgeClass() throws Exception {
+        assertEquals("fresh", getAgeClass(updatedSecondsAgo(64)));
+        assertEquals("recent", getAgeClass(updatedSecondsAgo(128)));
+        assertEquals("stale", getAgeClass(updatedSecondsAgo(512)));
+        assertEquals("dead", getAgeClass(updatedSecondsAgo(2048)));
+    }
+
+    private Map<String, Object> updatedSecondsAgo(int seconds) {
+        Map<String, Object> responseData = new LinkedHashMap<>();
+        responseData.put("LatestUpdate", now().minusSeconds(seconds));
+        return responseData;
     }
 }

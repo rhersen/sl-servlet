@@ -24,4 +24,16 @@ public class Utils {
         LocalDateTime latestUpdate = parse(responseData.get("LatestUpdate").toString());
         return between(latestUpdate, now());
     }
+
+    static String getAgeClass(Map<String, Object> cached) {
+        Duration age = getAge(cached);
+        long seconds = age.getSeconds();
+        if (seconds < 120)
+            return "fresh";
+        if (seconds > 1800)
+            return "dead";
+        if (seconds > 500)
+            return "stale";
+        return "recent";
+    }
 }

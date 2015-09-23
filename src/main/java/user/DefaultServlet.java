@@ -226,18 +226,6 @@ public class DefaultServlet extends HttpServlet {
             });
     }
 
-    private String getAgeClass(Map<String, Object> cached) {
-        Duration age = getAge(cached);
-        long seconds = age.getSeconds();
-        if (seconds < 120)
-            return "fresh";
-        if (seconds > 1800)
-            return "dead";
-        if (seconds > 500)
-            return "stale";
-        return "recent";
-    }
-
     private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
         Map<String, Object> found = getFrom(cache, southId);
         Object name = found != null ? getStopAreaName(found) : southId;
