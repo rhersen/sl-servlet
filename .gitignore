@@ -1,3 +1,6 @@
+/sl-servlet.iml
+/gradle/wrapper/gradle-wrapper.properties
+/.idea
 *.class
 
 # Mobile Tools for Java (J2ME)
