@@ -9,8 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.time.LocalDateTime.now;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 import static user.Utils.*;
 
 public class UtilsTest {
@@ -34,6 +33,12 @@ public class UtilsTest {
         Duration result = getAge(responseData);
 
         assertFalse(result.isNegative());
+    }
+    @Test
+    public void testIsExpired() throws Exception {
+        assertFalse(isExpired(updatedSecondsAgo(59)));
+        assertTrue(isExpired(updatedSecondsAgo(61)));
+        assertTrue(isExpired(null));
     }
 
     @Test

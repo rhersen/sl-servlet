@@ -36,4 +36,8 @@ public class Utils {
             return "stale";
         return "recent";
     }
+
+    static boolean isExpired(Map<String, Object> responseData) {
+        return responseData == null || getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
+    }
 }

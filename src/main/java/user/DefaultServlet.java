@@ -12,7 +12,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -250,9 +249,5 @@ public class DefaultServlet extends HttpServlet {
             tag("td", "", TrainFormatter.get(train, "timetableddatetime"), w);
         }
         w.println("</table>");
-    }
-
-    private boolean isExpired(Map<String, Object> responseData) {
-        return responseData == null || getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
     }
 }
