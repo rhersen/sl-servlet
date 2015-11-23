@@ -14,6 +14,10 @@ public class Stations {
         return ids.stream().map(Object::toString).collect(Collectors.toList());
     }
 
+    static List<String> getSouthwestStations() {
+        return ids.subList(7, 12).stream().map(Object::toString).collect(Collectors.toList());
+    }
+
     public static String south(String north) {
         List<String> stations = getStations();
         int index = stations.indexOf(north);

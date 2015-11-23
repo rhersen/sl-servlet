@@ -27,6 +27,8 @@ public class TrainFormatter {
             return getTimeTabled(train);
         if (key.equals("displaytime"))
             return getDisplay(train);
+        if (key.equals("destination"))
+            return getDestination(train);
         if (key.equals("remaining"))
             return getRemaining(train, LocalDateTime.now());
         return getString(train, key);
@@ -78,6 +80,15 @@ public class TrainFormatter {
     private static String getDisplay(Map<String, Object> train) {
         String raw = getString(train, "DisplayTime");
         return hhmm.matcher(raw).matches() ? "" : raw;
+    }
+
+    private static String getDestination(Map<String, Object> train) {
+        String raw = getString(train, "Destination");
+        if (raw.startsWith("Upplands ")) {
+            return raw.substring(9);
+        } else {
+            return raw;
+        }
     }
 
     private static String getString(Map<String, Object> map, String key) {

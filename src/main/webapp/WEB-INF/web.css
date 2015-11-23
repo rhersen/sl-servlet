@@ -21,3 +21,11 @@ a {
 .dead {
     background-color: red
 }
+
+table.timetable {
+    border-collapse: collapse;
+}
+
+table.timetable td {
+    border: 1px solid;
+}

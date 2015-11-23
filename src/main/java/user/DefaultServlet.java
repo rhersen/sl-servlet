@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
+import static java.util.Collections.reverse;
 import static user.JsonData.*;
 import static user.Stations.*;
 import static user.Utils.*;
@@ -74,6 +75,11 @@ public class DefaultServlet extends HttpServlet {
         setHeaders(response);
         PrintWriter w = response.getWriter();
         writeHeaders(w);
+
+        if (uri.endsWith("table")) {
+            writeTable(cache, w);
+            return;
+        }
 
         String siteId = SiteId.get(uri);
         if (siteId == null) {
@@ -146,6 +152,34 @@ public class DefaultServlet extends HttpServlet {
             w.print("<td>");
             if (cached != null)
                 w.print(getAge(cached).getSeconds());
+        }
+        w.print("</table>");
+    }
+
+    private void writeTable(ServletContext cache, PrintWriter w) {
+        writeHeader(w, "s1");
+        w.print("<table class='timetable'>");
+        List<String> southwestStations = getSouthwestStations();
+        reverse(southwestStations);
+        for (String id : southwestStations) {
+            Map<String, Object> cached = readFrom(cache, id);
+            w.print("<tr>");
+            w.print("<td class='age'>");
+            if (cached != null)
+                w.print(getAge(cached).getSeconds());
+            w.print("<td>");
+            if (cached != null) {
+                w.print(getStopAreaName(cached));
+                getTrains(cached).stream()
+                        .filter(train -> train.get("JourneyDirection").equals(2))
+                        .forEach(train -> {
+                            w.print("<td>");
+                            w.print(TrainFormatter.get(train, "expecteddatetime"));
+                            w.print("<br>");
+                            w.print(TrainFormatter.get(train, "destination"));
+                        });
+            } else
+                w.print(id);
         }
         w.print("</table>");
     }
