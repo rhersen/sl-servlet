@@ -16,8 +16,7 @@ public class TrainFormatterTest {
 
     @Test
     public void nullReturnsEmptyString() throws Exception {
-        Map<String, Object> train = getTrain("ExpectedDateTime", "");
-        assertEquals("", get(train, "Destination"));
+        assertEquals("", get(getTrain("ExpectedDateTime", ""), "Destination"));
     }
 
     @Test
@@ -40,10 +39,12 @@ public class TrainFormatterTest {
 
     @Test
     public void showsDeviation() throws Exception {
-        Map<String, Object> deviation = getTrain("Text", "Inställd");
+        Map<String, Object> deviation = new HashMap<>();
+        deviation.put("Text", "Inställd");
         deviation.put("Consequence", "CANCELLED");
         deviation.put("ImportanceLevel", 0);
-        Map<String, Object> train = getTrain("TimeTabledDateTime", "2015-08-18T17:00:00");
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
         train.put("ExpectedDateTime", "2015-08-18T17:00:00");
         train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
         assertEquals("Inställd", get(train, "expecteddatetime"));
@@ -51,11 +52,12 @@ public class TrainFormatterTest {
 
     @Test
     public void butNotForImportanceLevel5() throws Exception {
-        Map<String, Object> deviation = getTrain("Text", "Resa förbi Arlanda C kräver både UL- " +
-                "och SL- biljett.");
+        Map<String, Object> deviation = new HashMap<>();
+        deviation.put("Text", "Resa förbi Arlanda C kräver både UL- och SL- biljett.");
         deviation.put("Consequence", "INFORMATION");
         deviation.put("ImportanceLevel", 5);
-        Map<String, Object> train = getTrain("TimeTabledDateTime", "2015-08-18T17:00:00");
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
         train.put("ExpectedDateTime", "2015-08-18T17:00:00");
         train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
         assertEquals("17:00", get(train, "expecteddatetime"));
@@ -63,8 +65,7 @@ public class TrainFormatterTest {
 
     @Test
     public void doesntCrashIfNoDateTimeDelimiter() throws Exception {
-        Map<String, Object> train = getTrain("ExpectedDateTime", "17:01:25");
-        assertEquals("17:01:25", get(train, "expecteddatetime"));
+        assertEquals("17:01:25", get(getTrain("ExpectedDateTime", "17:01:25"), "expecteddatetime"));
     }
 
     @Test
@@ -75,40 +76,40 @@ public class TrainFormatterTest {
 
     @Test
     public void doesntCrashIfNoExpectedDateTime() throws Exception {
-        Map<String, Object> train = getTrain("TimeTabledDateTime", "17:01:25");
-        assertEquals("", get(train, "expecteddatetime"));
+        assertEquals("", get(getTrain("TimeTabledDateTime", "17:01:25"), "expecteddatetime"));
     }
 
     @Test
     public void showsTimeTabledIfDifferentFromExpected() throws Exception {
-        Map<String, Object> train = getTrain("TimeTabledDateTime", "2015-08-18T17:10:00");
-        train.put("ExpectedDateTime", "2015-08-18T17:11:25");
+        Map<String, Object> train = getTrain(
+                "TimeTabledDateTime", "2015-08-18T17:10:00",
+                "ExpectedDateTime", "2015-08-18T17:11:25");
         assertEquals("10", get(train, "timetableddatetime"));
     }
 
     @Test
     public void showsTimeTabledAsEmptyIfSameAsExpected() throws Exception {
-        Map<String, Object> train = getTrain("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("ExpectedDateTime", "2015-08-18T17:00:00");
+        Map<String, Object> train = getTrain(
+                "TimeTabledDateTime", "2015-08-18T17:00:00",
+                "ExpectedDateTime", "2015-08-18T17:00:00");
         assertEquals("", get(train, "timetableddatetime"));
     }
 
     @Test
     public void showsDisplayTimeIfRelative() throws Exception {
-        Map<String, Object> train = getTrain("DisplayTime", "7 min");
-        assertEquals("7 min", get(train, "displaytime"));
+        assertEquals("7 min", get(getTrain("DisplayTime", "7 min"), "displaytime"));
     }
 
     @Test
     public void showsEmptyDisplayTimeIfAbsolute() throws Exception {
-        Map<String, Object> train = getTrain("DisplayTime", "17:00");
-        assertEquals("", get(train, "displaytime"));
+        assertEquals("", get(getTrain("DisplayTime", "17:00"), "displaytime"));
     }
 
     @Test
     public void remaining() throws Exception {
-        Map<String, Object> train = getTrain("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("ExpectedDateTime", "2015-08-18T17:01:25");
+        Map<String, Object> train = getTrain(
+                "TimeTabledDateTime", "2015-08-18T17:00:00",
+                "ExpectedDateTime", "2015-08-18T17:01:25");
         assertNotEquals("", get(train, "remaining"));
     }
 
@@ -127,6 +128,13 @@ public class TrainFormatterTest {
     private Map<String, Object> getTrain(String key, String value) {
         Map<String, Object> train = new HashMap<>();
         train.put(key, value);
+        return train;
+    }
+
+    private Map<String, Object> getTrain(String key, String value, String key1, String value1) {
+        Map<String, Object> train = new HashMap<>();
+        train.put(key, value);
+        train.put(key1, value1);
         return train;
     }
 }

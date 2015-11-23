@@ -84,11 +84,10 @@ public class TrainFormatter {
 
     private static String getDestination(Map<String, Object> train) {
         String raw = getString(train, "Destination");
-        if (raw.startsWith("Upplands ")) {
+        if (raw.startsWith("Upplands "))
             return raw.substring(9);
-        } else {
+        else
             return raw;
-        }
     }
 
     private static String getString(Map<String, Object> map, String key) {
