@@ -38,6 +38,27 @@ public class TrainFormatterTest {
     }
 
     @Test
+    public void sodra() throws Exception {
+        assertEquals("1225", get(getTrain("20:16", "1", "9528"), "sodra"));
+        assertEquals("1240", get(getTrain("20:31", "1", "9528"), "sodra"));
+        assertEquals("1240", get(getTrain("20:28", "1", "9527"), "sodra"));
+        assertEquals("1240", get(getTrain("20:25", "1", "9526"), "sodra"));
+        assertEquals("1240", get(getTrain("20:22", "1", "9525"), "sodra"));
+        assertEquals("1240", get(getTrain("20:18", "1", "9524"), "sodra"));
+        assertEquals("1270", get(getTrain("20:48", "1", "9524"), "sodra"));
+        assertEquals("1218", get(getTrain("20:18", "1", "666"), "sodra"));
+        assertEquals("?", get(getTrain("ZO:lB", "1", "666"), "sodra"));
+    }
+
+    private Map<String, Object> getTrain(String time, String dir, String siteId) {
+        Map<String, Object> train = new HashMap<>();
+        train.put("TimeTabledDateTime", "2015-08-18T" + time + ":00");
+        train.put("JourneyDirection", dir);
+        train.put("SiteId", siteId);
+        return train;
+    }
+
+    @Test
     public void showsDeviation() throws Exception {
         Map<String, Object> deviation = new HashMap<>();
         deviation.put("Text", "Inställd");

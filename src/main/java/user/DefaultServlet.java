@@ -176,6 +176,8 @@ public class DefaultServlet extends HttpServlet {
                             w.print("<td>");
                             w.print(TrainFormatter.get(train, "expecteddatetime"));
                             w.print("<br>");
+                            w.print(TrainFormatter.get(train, "sodra"));
+                            w.print(" ");
                             w.print(TrainFormatter.get(train, "destination"));
                         });
             } else
