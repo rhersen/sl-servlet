@@ -170,13 +170,14 @@ public class DefaultServlet extends HttpServlet {
             w.print("<td>");
             if (cached != null) {
                 w.print(getStopAreaName(cached));
-                getTrains(cached).stream()
-                        .filter(train -> train.get("JourneyDirection").equals(2))
-                        .forEach(train -> {
+                indexedTrains(cached).entrySet().stream()
+                        .filter(entry -> entry.getValue().get("JourneyDirection").equals(2))
+                        .forEach(entry -> {
                             w.print("<td>");
+                            Map<String, Object> train = entry.getValue();
                             w.print(TrainFormatter.get(train, "expecteddatetime"));
                             w.print("<br>");
-                            w.print(TrainFormatter.get(train, "sodra"));
+                            w.print(entry.getKey());
                             w.print(" ");
                             w.print(TrainFormatter.get(train, "destination"));
                         });
@@ -216,7 +217,7 @@ public class DefaultServlet extends HttpServlet {
         w.print("</a> ");
         writeLinkTo(north(siteId), cache, w);
         w.print("</div>");
-        writeTrains(getTrains(site), isExpired(site), w);
+        writeTrains(indexedTrains(site), isExpired(site), w);
     }
 
     private void writeHeader(PrintWriter w, Object stopAreaName) {
@@ -273,9 +274,10 @@ public class DefaultServlet extends HttpServlet {
         writer.println(format("</%s>", tag));
     }
 
-    private void writeTrains(Iterable<Map<String, Object>> trains, boolean expired, PrintWriter w) {
+    private void writeTrains(Map<Integer, Map<String, Object>> trains, boolean expired,
+                             PrintWriter w) {
         w.print("<table>");
-        for (Map<String, Object> train : trains) {
+        for (Map<String, Object> train : trains.values()) {
             w.print("<tr>");
             tag("td", "", TrainFormatter.get(train, "remaining"), w);
             if (!expired)

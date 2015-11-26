@@ -3,12 +3,10 @@ package user;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.lang.Integer.parseInt;
 import static java.time.Duration.between;
 import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
@@ -19,7 +17,6 @@ public class TrainFormatter {
 
     private static final Pattern wholeMinutes = Pattern.compile(".+T(.+):00");
     private static final Pattern onlyMinutes = Pattern.compile(".+T.+:(.+):00");
-    private static final Pattern hoursMinutes = Pattern.compile(".+T(\\d\\d):(\\d\\d):00");
     private static final Pattern dateTime = Pattern.compile(".+T(.+)");
     private static final Pattern hhmm = Pattern.compile("\\d\\d:\\d\\d");
 
@@ -32,8 +29,6 @@ public class TrainFormatter {
             return getDisplay(train);
         if (key.equals("destination"))
             return getDestination(train);
-        if (key.equals("sodra"))
-            return getSodra(train);
         if (key.equals("remaining"))
             return getRemaining(train, LocalDateTime.now());
         return getString(train, key);
@@ -93,22 +88,6 @@ public class TrainFormatter {
             return raw.substring(9);
         else
             return raw;
-    }
-
-    private static String getSodra(Map<String, Object> train) {
-        Map<String, Integer> lookup = new HashMap<>();
-        lookup.put("9524", 22);
-        lookup.put("9525", 18);
-        lookup.put("9526", 15);
-        lookup.put("9527", 12);
-        lookup.put("9528", 9);
-        Matcher m;
-        if ((m = hoursMinutes.matcher(getString(train, "TimeTabledDateTime"))).matches()) {
-            int minutesToSodra = lookup.getOrDefault(getString(train, "SiteId"), 0);
-            int minutesAtSodra = parseInt(m.group(1)) * 60 + parseInt(m.group(2)) + minutesToSodra;
-            return "" + minutesAtSodra;
-        } else
-            return "?";
     }
 
     private static String getString(Map<String, Object> map, String key) {
