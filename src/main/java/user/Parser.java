@@ -22,10 +22,11 @@ public class Parser {
         JsonToken t = VALUE_NULL;
         while (t != null && !isFieldNameTrains(t, p.getCurrentName()))
             t = p.nextToken();
+        p.nextToken();
     }
 
     private static boolean isFieldNameTrains(JsonToken t, String currentName) throws IOException {
-        return t == FIELD_NAME && currentName.equals("ResponseData");
+        return t == FIELD_NAME && currentName.equals("RESULT");
     }
 
     private static Object getNextTokenValue(JsonParser p, JsonToken t) throws IOException {

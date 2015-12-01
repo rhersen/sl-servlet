@@ -2,14 +2,10 @@ package user;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -19,10 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
-import static java.util.Collections.reverse;
-import static user.JsonData.*;
-import static user.Stations.*;
-import static user.Utils.*;
+import static user.Utils.getByteList;
 
 public class DefaultServlet extends HttpServlet {
 
@@ -72,34 +65,58 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
-        setHeaders(response);
-        PrintWriter w = response.getWriter();
-        writeHeaders(w);
-
-        if (uri.endsWith("table")) {
-            writeTable(cache, w);
-            return;
-        }
-
         String siteId = SiteId.get(uri);
-        if (siteId == null) {
-            writeIndex(cache, w);
-            return;
+        System.out.println(siteId);
+        URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "text/xml");
+        conn.setDoOutput(true);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
+        outputStreamWriter.write("<REQUEST>\n" +
+                " <LOGIN authenticationkey=\"cfdeb57c80374fcd80ca811d2bcb561a\" />\n" +
+                " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
+                "  <FILTER>\n" +
+                "   <AND>\n" +
+                "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
+                "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
+                "    <AND>\n" +
+                "     <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
+                "     <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(00:50:00)\" />\n" +
+                "    </AND>\n" +
+                "   </AND>\n" +
+                "  </FILTER>\n" +
+                "  <INCLUDE>AdvertisedTrainIdent</INCLUDE>\n" +
+                "  <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>EstimatedTimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>ProductInformation</INCLUDE>\n" +
+                "  <INCLUDE>ToLocation</INCLUDE>\n" +
+                " </QUERY>\n" +
+                "</REQUEST>");
+        outputStreamWriter.close();
+
+        if (conn.getResponseCode() != 200)
+            throw new RuntimeException(
+                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
+
+        InputStream inputStream = conn.getInputStream();
+        PrintWriter w = response.getWriter();
+        Map<String, Object> responseData = Parser.parse(inputStream);
+        conn.disconnect();
+        Iterable<Map> trainAnnouncement = (Iterable<Map>) responseData.get("TrainAnnouncement");
+        w.println("<table>");
+        for (Map train : trainAnnouncement) {
+            w.println("<tr>");
+            w.println("<td>");
+            w.println(train.get("AdvertisedTimeAtLocation"));
+            w.println("<td>");
+            w.println(train.get("EstimatedTimeAtLocation"));
+            w.println("<td>");
+            w.println(train.get("ToLocation"));
+            w.println("<td>");
+            w.println(train.get("ProductInformation"));
         }
-
-        Map<String, Object> found = getFrom(cache, siteId);
-
-        if (found == null) {
-            writeNotInCache(w, "Inget data", format("<a href=%s>Uppdatera</a>", siteId));
-            return;
-        }
-
-        logger.info("cached");
-
-        if (!hasTrains(found))
-            writeNoTrains(siteId, w);
-        else
-            writeStation(siteId, found, cache, w);
+        w.println("</table>");
     }
 
     private byte[] getByteArray(InputStream stream) throws IOException {
@@ -117,175 +134,5 @@ public class DefaultServlet extends HttpServlet {
         while ((read = reader.read()) != -1)
             list.append((char) read);
         return list.toString();
-    }
-
-    private void setHeaders(ServletResponse response) {
-        response.setContentType("text/html");
-        response.setCharacterEncoding("UTF-8");
-    }
-
-    private void writeHeaders(PrintWriter w) {
-        w.print("<!doctype html>");
-        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
-        w.print("<meta");
-        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
-        w.print(" name=\"viewport\"");
-        w.print(">");
-        w.print("<meta charset=utf-8>");
-    }
-
-    private void writeIndex(ServletContext cache, PrintWriter w) {
-        writeHeader(w, "s1");
-        w.print("<table>");
-        for (String id : getStations()) {
-            Map<String, Object> cached = readFrom(cache, id);
-            w.print("<tr>");
-            w.print("<td>");
-            w.print(format("<a href='%s'>", id));
-            w.print(id);
-            w.print("</a>");
-            w.print("<td>");
-            w.print(format("<a href='%s'>", id));
-            if (cached != null)
-                w.print(getStopAreaName(cached));
-            w.print("</a>");
-            w.print("<td>");
-            if (cached != null)
-                w.print(getAge(cached).getSeconds());
-        }
-        w.print("</table>");
-    }
-
-    private void writeTable(ServletContext cache, PrintWriter w) {
-        writeHeader(w, "s1");
-        w.print("<table class='timetable'>");
-        List<String> southwestStations = getSouthwestStations();
-        reverse(southwestStations);
-        for (String id : southwestStations) {
-            Map<String, Object> cached = readFrom(cache, id);
-            w.print("<tr>");
-            w.print("<td class='age'>");
-            if (cached != null)
-                w.print(getAge(cached).getSeconds());
-            w.print("<td>");
-            if (cached != null) {
-                w.print(getStopAreaName(cached));
-                indexedTrains(cached).entrySet().stream()
-                        .filter(entry -> entry.getValue().get("JourneyDirection").equals(2))
-                        .forEach(entry -> {
-                            w.print("<td>");
-                            Map<String, Object> train = entry.getValue();
-                            w.print(TrainFormatter.get(train, "expecteddatetime"));
-                            w.print("<br>");
-                            w.print(entry.getKey());
-                            w.print(" ");
-                            w.print(TrainFormatter.get(train, "destination"));
-                        });
-            } else
-                w.print(id);
-        }
-        w.print("</table>");
-    }
-
-    private Map<String, Object> getFrom(ServletContext cache, String siteId) {
-        Map<String, Object> found = readFrom(cache, siteId);
-        refreshIfNecessary(cache, siteId, found);
-        return found;
-    }
-
-    private void writeNotInCache(PrintWriter w, String stopAreaName, String s) {
-        writeHeader(w, stopAreaName);
-        w.print(s);
-    }
-
-    private void writeNoTrains(String siteId, PrintWriter w) {
-        w.print(format("<div>no trains for SiteId %s</div>", siteId));
-    }
-
-    private void writeStation(
-            String siteId,
-            Map<String, Object> site,
-            ServletContext cache,
-            PrintWriter w) {
-        writeHeader(w, getStopAreaName(site));
-        for (Object value : CommonFields.get(site).values())
-            tag("span", getAgeClass(site), value, w);
-        w.print("<div>");
-        writeLinkTo(south(siteId), cache, w);
-        w.print(format("<a href=%s class=%s>", siteId, getAgeClass(site)));
-        w.print(getStopAreaName(site));
-        w.print("</a> ");
-        writeLinkTo(north(siteId), cache, w);
-        w.print("</div>");
-        writeTrains(indexedTrains(site), isExpired(site), w);
-    }
-
-    private void writeHeader(PrintWriter w, Object stopAreaName) {
-        tag("title", "", stopAreaName, w);
-        w.print(format("<style>%s</style>", css));
-        w.print("<div><a href='/'>Hem</a></div>");
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> readFrom(ServletContext cache, String siteId) {
-        return (Map<String, Object>) cache.getAttribute(siteId);
-    }
-
-    private void refreshIfNecessary(ServletContext cache, String id, Map<String, Object> found) {
-        if (isExpired(found))
-            executor.submit(() -> {
-                try {
-                    Map<String, Object> checkAgain = readFrom(cache, id);
-                    boolean expired = checkAgain == null || isExpired(checkAgain);
-                    if (expired) {
-                        URL url = new URL(format(
-                                "http://api.sl.se/api2" +
-                                        "/realtimedepartures.json" +
-                                        "?key=%s&SiteId=%s&TimeWindow=60",
-                                Key.get(), id));
-                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                        conn.setRequestMethod("GET");
-                        conn.setRequestProperty("Accept", "application/json");
-
-                        if (conn.getResponseCode() != 200)
-                            throw new RuntimeException(
-                                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
-
-                        Map<String, Object> responseData = Parser.parse(conn.getInputStream());
-                        conn.disconnect();
-                        logger.info("caching " + getStopAreaName(responseData));
-                        cache.setAttribute(id, responseData);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            });
-    }
-
-    private void writeLinkTo(String southId, ServletContext cache, PrintWriter w) {
-        Map<String, Object> found = getFrom(cache, southId);
-        Object name = found != null ? getStopAreaName(found) : southId;
-        w.print(format("<a href=%s>%s</a> ", southId, name));
-    }
-
-    private void tag(String tag, String classes, Object text, PrintWriter writer) {
-        writer.print(format("<%s class='%s'>", tag, classes));
-        writer.print(text);
-        writer.println(format("</%s>", tag));
-    }
-
-    private void writeTrains(Map<Integer, Map<String, Object>> trains, boolean expired,
-                             PrintWriter w) {
-        w.print("<table>");
-        for (Map<String, Object> train : trains.values()) {
-            w.print("<tr>");
-            tag("td", "", TrainFormatter.get(train, "remaining"), w);
-            if (!expired)
-                tag("td", "", TrainFormatter.get(train, "displaytime"), w);
-            tag("td", "", TrainFormatter.get(train, "Destination"), w);
-            tag("td", "", TrainFormatter.get(train, "expecteddatetime"), w);
-            tag("td", "", TrainFormatter.get(train, "timetableddatetime"), w);
-        }
-        w.println("</table>");
     }
 }
