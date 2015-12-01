@@ -86,7 +86,7 @@ public class DefaultServlet extends HttpServlet {
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
         outputStreamWriter.write("<REQUEST>\n" +
-                " <LOGIN authenticationkey=\"cfdeb57c80374fcd80ca811d2bcb561a\" />\n" +
+                " <LOGIN authenticationkey=\"" + Key.get() + "\" />\n" +
                 " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
                 "  <FILTER>\n" +
                 "   <AND>\n" +
