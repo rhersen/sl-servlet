@@ -27,14 +27,13 @@ public class TrainFormatterTest {
 
     @Test
     public void removesDay() throws Exception {
-        Map<String, Object> train = getTrain("ExpectedDateTime", "2015-08-18T17:01:25");
-        assertEquals("17:01:25", get(train, "expecteddatetime"));
+        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25"), "estimatedtimeatlocation"));
     }
 
     @Test
     public void removesSecondsIfZero() throws Exception {
-        Map<String, Object> train = getTrain("ExpectedDateTime", "2015-08-18T17:01:00");
-        assertEquals("17:01", get(train, "expecteddatetime"));
+        assertEquals("17:01", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00"), "estimatedtimeatlocation"));
+        assertEquals("17:01", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00"), "advertisedtimeatlocation"));
     }
 
     @Test
@@ -45,9 +44,9 @@ public class TrainFormatterTest {
         deviation.put("ImportanceLevel", 0);
         Map<String, Object> train = new HashMap<>();
         train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("ExpectedDateTime", "2015-08-18T17:00:00");
+        train.put("EstimatedTimeAtLocation", "2015-08-18T17:00:00");
         train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
-        assertEquals("Inställd", get(train, "expecteddatetime"));
+        assertEquals("Inställd", get(train, "estimatedtimeatlocation"));
     }
 
     @Test
@@ -58,14 +57,14 @@ public class TrainFormatterTest {
         deviation.put("ImportanceLevel", 5);
         Map<String, Object> train = new HashMap<>();
         train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("ExpectedDateTime", "2015-08-18T17:00:00");
+        train.put("EstimatedTimeAtLocation", "2015-08-18T17:00:00");
         train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
-        assertEquals("17:00", get(train, "expecteddatetime"));
+        assertEquals("17:00", get(train, "estimatedtimeatlocation"));
     }
 
     @Test
     public void doesntCrashIfNoDateTimeDelimiter() throws Exception {
-        assertEquals("17:01:25", get(getTrain("ExpectedDateTime", "17:01:25"), "expecteddatetime"));
+        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "17:01:25"), "estimatedtimeatlocation"));
     }
 
     @Test
@@ -77,14 +76,6 @@ public class TrainFormatterTest {
     @Test
     public void doesntCrashIfNoExpectedDateTime() throws Exception {
         assertEquals("", get(getTrain("TimeTabledDateTime", "17:01:25"), "expecteddatetime"));
-    }
-
-    @Test
-    public void showsTimeTabledIfDifferentFromExpected() throws Exception {
-        Map<String, Object> train = getTrain(
-                "TimeTabledDateTime", "2015-08-18T17:10:00",
-                "ExpectedDateTime", "2015-08-18T17:11:25");
-        assertEquals("10", get(train, "timetableddatetime"));
     }
 
     @Test

@@ -2,6 +2,7 @@ package user;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,6 +16,9 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
+import static user.JsonData.getStopAreaName;
+import static user.Stations.getStations;
+import static user.Utils.getAge;
 import static user.Utils.getByteList;
 
 public class DefaultServlet extends HttpServlet {
@@ -65,8 +69,16 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
+        setHeaders(response);
+        PrintWriter w = response.getWriter();
+        writeHeaders(w);
+
         String siteId = SiteId.get(uri);
-        System.out.println(siteId);
+        if (siteId == null) {
+            writeIndex(cache, w);
+            return;
+        }
+
         URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -79,6 +91,7 @@ public class DefaultServlet extends HttpServlet {
                 "  <FILTER>\n" +
                 "   <AND>\n" +
                 "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
+//                "    <EQ name=\"AdvertisedTrainIdent\" value=\"" + 2769 + "\" />\n" +
                 "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
                 "    <AND>\n" +
                 "     <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
@@ -86,6 +99,7 @@ public class DefaultServlet extends HttpServlet {
                 "    </AND>\n" +
                 "   </AND>\n" +
                 "  </FILTER>\n" +
+                "  <INCLUDE>LocationSignature</INCLUDE>\n" +
                 "  <INCLUDE>AdvertisedTrainIdent</INCLUDE>\n" +
                 "  <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>\n" +
                 "  <INCLUDE>EstimatedTimeAtLocation</INCLUDE>\n" +
@@ -100,7 +114,6 @@ public class DefaultServlet extends HttpServlet {
                     format("Failed: HTTP error code: %d", conn.getResponseCode()));
 
         InputStream inputStream = conn.getInputStream();
-        PrintWriter w = response.getWriter();
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
         Iterable<Map> trainAnnouncement = (Iterable<Map>) responseData.get("TrainAnnouncement");
@@ -108,13 +121,17 @@ public class DefaultServlet extends HttpServlet {
         for (Map train : trainAnnouncement) {
             w.println("<tr>");
             w.println("<td>");
-            w.println(train.get("AdvertisedTimeAtLocation"));
+            w.println(TrainFormatter.get(train, "LocationSignature"));
             w.println("<td>");
-            w.println(train.get("EstimatedTimeAtLocation"));
+            w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
             w.println("<td>");
-            w.println(train.get("ToLocation"));
+            w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
             w.println("<td>");
-            w.println(train.get("ProductInformation"));
+            w.println(TrainFormatter.get(train, "ToLocation"));
+            w.println("<td>");
+            w.println(TrainFormatter.get(train, "AdvertisedTrainIdent"));
+            w.println("<td>");
+            w.println(TrainFormatter.get(train, "ProductInformation"));
         }
         w.println("</table>");
     }
@@ -134,5 +151,59 @@ public class DefaultServlet extends HttpServlet {
         while ((read = reader.read()) != -1)
             list.append((char) read);
         return list.toString();
+    }
+
+    private void setHeaders(ServletResponse response) {
+        response.setContentType("text/html");
+        response.setCharacterEncoding("UTF-8");
+    }
+
+    private void writeHeaders(PrintWriter w) {
+        w.print("<!doctype html>");
+        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
+        w.print("<meta");
+        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
+        w.print(" name=\"viewport\"");
+        w.print(">");
+        w.print("<meta charset=utf-8>");
+    }
+
+    private void writeIndex(ServletContext cache, PrintWriter w) {
+        writeHeader(w, "s1");
+        w.print("<table>");
+        for (String id : getStations()) {
+            Map<String, Object> cached = readFrom(cache, id);
+            w.print("<tr>");
+            w.print("<td>");
+            w.print(format("<a href='%s'>", id));
+            w.print(id);
+            w.print("</a>");
+            w.print("<td>");
+            w.print(format("<a href='%s'>", id));
+            if (cached != null)
+                w.print(getStopAreaName(cached));
+            w.print("</a>");
+            w.print("<td>");
+            if (cached != null)
+                w.print(getAge(cached).getSeconds());
+        }
+        w.print("</table>");
+    }
+
+    private void writeHeader(PrintWriter w, Object stopAreaName) {
+        tag("title", "", stopAreaName, w);
+        w.print(format("<style>%s</style>", css));
+        w.print("<div><a href='/'>Hem</a></div>");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> readFrom(ServletContext cache, String siteId) {
+        return (Map<String, Object>) cache.getAttribute(siteId);
+    }
+
+    private void tag(String tag, String classes, Object text, PrintWriter writer) {
+        writer.print(format("<%s class='%s'>", tag, classes));
+        writer.print(text);
+        writer.println(format("</%s>", tag));
     }
 }

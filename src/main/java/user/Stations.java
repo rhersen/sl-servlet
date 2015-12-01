@@ -7,8 +7,8 @@ import static java.util.Arrays.asList;
 
 public class Stations {
 
-    private static final List<Integer> ids =
-            asList(9704, 9325, 9510, 9000, 9530, 9531, 9529, 9528, 9527, 9526, 9525, 9524);
+    private static final List<String> ids =
+            asList("Spå", "Sub", "Ke", "Cst", "Sst", "Åbe", "Äs", "Sta", "Hu", "Flb", "Tul", "Tu");
 
     static List<String> getStations() {
         return ids.stream().map(Object::toString).collect(Collectors.toList());

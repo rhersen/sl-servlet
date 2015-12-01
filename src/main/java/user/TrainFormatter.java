@@ -21,9 +21,9 @@ public class TrainFormatter {
     private static final Pattern hhmm = Pattern.compile("\\d\\d:\\d\\d");
 
     public static String get(Map<String, Object> train, String key) {
-        if (key.equals("expecteddatetime"))
+        if (key.equals("estimatedtimeatlocation"))
             return getExpected(train);
-        if (key.equals("timetableddatetime"))
+        if (key.equals("advertisedtimeatlocation"))
             return getTimeTabled(train);
         if (key.equals("displaytime"))
             return getDisplay(train);
@@ -47,10 +47,8 @@ public class TrainFormatter {
 
     private static String getTimeTabled(Map<String, Object> train) {
         Matcher m;
-        String raw = getString(train, "TimeTabledDateTime");
-        if (raw.equals(getString(train, "ExpectedDateTime")))
-            return "";
-        return (m = onlyMinutes.matcher(raw)).matches() ? m.group(1) : raw;
+        String raw = getString(train, "AdvertisedTimeAtLocation");
+        return (m = wholeMinutes.matcher(raw)).matches() ? m.group(1) : raw;
     }
 
     private static String getExpected(Map<String, Object> train) {
@@ -70,7 +68,7 @@ public class TrainFormatter {
         }
 
         Matcher m;
-        String raw = getString(train, "ExpectedDateTime");
+        String raw = getString(train, "EstimatedTimeAtLocation");
         for (Pattern pattern : asList(wholeMinutes, dateTime))
             if ((m = pattern.matcher(raw)).matches())
                 return m.group(1);
