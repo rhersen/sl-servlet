@@ -78,6 +78,7 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
+        writeHeader(w, "trafikverket");
         URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -117,10 +118,15 @@ public class DefaultServlet extends HttpServlet {
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
         w.println("<table>");
-        for (Map<String, Object> train : (Iterable<Map<String, Object>>) responseData.get("TrainAnnouncement"))
+        for (Map<String, Object> train : getTrainAnnouncement(responseData))
             if (isPendel(train))
                 writeTrain(train, w);
         w.println("</table>");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Iterable<Map<String, Object>> getTrainAnnouncement(Map<String, Object> responseData) {
+        return (Iterable<Map<String, Object>>) responseData.get("TrainAnnouncement");
     }
 
     private boolean isPendel(Map train) {
@@ -128,7 +134,7 @@ public class DefaultServlet extends HttpServlet {
         return pi != null && pi.contains("Pendeltåg");
     }
 
-    private void writeTrain(Map train, PrintWriter w) {
+    private void writeTrain(Map<String, Object> train, PrintWriter w) {
         w.println("<tr>");
         w.println("<td>");
         w.println(TrainFormatter.get(train, "LocationSignature"));
@@ -177,7 +183,7 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void writeIndex(ServletContext cache, PrintWriter w) {
-        writeHeader(w, "s1");
+        writeHeader(w, "trafikverket");
         w.print("<table>");
         for (String id : getStations()) {
             Map<String, Object> cached = readFrom(cache, id);
