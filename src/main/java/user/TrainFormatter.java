@@ -3,6 +3,7 @@ package user;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,9 +26,11 @@ public class TrainFormatter {
             return getExpected(train);
         if (key.equals("advertisedtimeatlocation"))
             return getTimeTabled(train);
+        if (key.equals("timeatlocation"))
+            return getActual(train);
         if (key.equals("displaytime"))
             return getDisplay(train);
-        if (key.equals("destination"))
+        if (key.equals("tolocation"))
             return getDestination(train);
         if (key.equals("remaining"))
             return getRemaining(train, LocalDateTime.now());
@@ -46,8 +49,16 @@ public class TrainFormatter {
     }
 
     private static String getTimeTabled(Map<String, Object> train) {
+        return getTimeWithoutDate(train, "AdvertisedTimeAtLocation");
+    }
+
+    private static String getActual(Map<String, Object> train) {
+        return getTimeWithoutDate(train, "TimeAtLocation");
+    }
+
+    private static String getTimeWithoutDate(Map<String, Object> train, String key) {
         Matcher m;
-        String raw = getString(train, "AdvertisedTimeAtLocation");
+        String raw = getString(train, key);
         for (Pattern pattern : asList(wholeMinutes, dateTime))
             if ((m = pattern.matcher(raw)).matches())
                 return m.group(1);
@@ -84,11 +95,11 @@ public class TrainFormatter {
     }
 
     private static String getDestination(Map<String, Object> train) {
-        String raw = getString(train, "Destination");
-        if (raw.startsWith("Upplands "))
-            return raw.substring(9);
+        Deque raw = (Deque) train.get("ToLocation");
+        if (raw != null && !raw.isEmpty())
+            return raw.getLast().toString();
         else
-            return raw;
+            return "" + raw;
     }
 
     private static String getString(Map<String, Object> map, String key) {

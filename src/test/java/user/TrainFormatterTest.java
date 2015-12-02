@@ -4,9 +4,11 @@ import org.junit.Test;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.time.LocalDateTime.parse;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -35,6 +37,7 @@ public class TrainFormatterTest {
     public void removesSecondsIfZero() throws Exception {
         assertEquals("17:01", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00"), "estimatedtimeatlocation"));
         assertEquals("17:01", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00"), "advertisedtimeatlocation"));
+        assertEquals("17:01", get(getTrain("TimeAtLocation", "2015-08-18T17:01:00"), "timeatlocation"));
     }
 
     @Test
@@ -69,12 +72,6 @@ public class TrainFormatterTest {
     }
 
     @Test
-    public void abbreviatesDestination() throws Exception {
-        assertEquals("Väsby", get(getTrain("Destination", "Upplands Väsby"), "destination"));
-        assertEquals("Märsta", get(getTrain("Destination", "Märsta"), "destination"));
-    }
-
-    @Test
     public void doesntCrashIfNoExpectedDateTime() throws Exception {
         assertEquals("", get(getTrain("TimeTabledDateTime", "17:01:25"), "expecteddatetime"));
     }
@@ -98,6 +95,12 @@ public class TrainFormatterTest {
     }
 
     @Test
+    public void toLocation() throws Exception {
+        List<String> strings = asList("Äs", "Söc");
+        assertEquals("Söc", get(getTrain("ToLocation", new ArrayDeque<>(strings)), "tolocation"));
+    }
+
+    @Test
     public void remaining() throws Exception {
         Map<String, Object> train = getTrain(
                 "TimeTabledDateTime", "2015-08-18T17:00:00",
@@ -117,7 +120,7 @@ public class TrainFormatterTest {
         assertEquals("10m", getRemaining(train, parse("2015-08-18T16:51:30")));
     }
 
-    private Map<String, Object> getTrain(String key, String value) {
+    private Map<String, Object> getTrain(String key, Object value) {
         Map<String, Object> train = new HashMap<>();
         train.put(key, value);
         return train;

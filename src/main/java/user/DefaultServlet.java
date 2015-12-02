@@ -102,6 +102,7 @@ public class DefaultServlet extends HttpServlet {
                 "  <INCLUDE>AdvertisedTrainIdent</INCLUDE>\n" +
                 "  <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>\n" +
                 "  <INCLUDE>EstimatedTimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>TimeAtLocation</INCLUDE>\n" +
                 "  <INCLUDE>ProductInformation</INCLUDE>\n" +
                 "  <INCLUDE>ToLocation</INCLUDE>\n" +
                 " </QUERY>\n" +
@@ -136,7 +137,9 @@ public class DefaultServlet extends HttpServlet {
         w.println("<td>");
         w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
         w.println("<td>");
-        w.println(TrainFormatter.get(train, "ToLocation"));
+        w.println(TrainFormatter.get(train, "timeatlocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "tolocation"));
         w.println("<td>");
         w.println(TrainFormatter.get(train, "AdvertisedTrainIdent"));
     }
