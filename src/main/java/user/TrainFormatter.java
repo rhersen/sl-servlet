@@ -48,7 +48,10 @@ public class TrainFormatter {
     private static String getTimeTabled(Map<String, Object> train) {
         Matcher m;
         String raw = getString(train, "AdvertisedTimeAtLocation");
-        return (m = wholeMinutes.matcher(raw)).matches() ? m.group(1) : raw;
+        for (Pattern pattern : asList(wholeMinutes, dateTime))
+            if ((m = pattern.matcher(raw)).matches())
+                return m.group(1);
+        return raw;
     }
 
     private static String getExpected(Map<String, Object> train) {

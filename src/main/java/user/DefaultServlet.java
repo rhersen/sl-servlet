@@ -9,8 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -116,24 +115,30 @@ public class DefaultServlet extends HttpServlet {
         InputStream inputStream = conn.getInputStream();
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
-        Iterable<Map> trainAnnouncement = (Iterable<Map>) responseData.get("TrainAnnouncement");
         w.println("<table>");
-        for (Map train : trainAnnouncement) {
-            w.println("<tr>");
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, "LocationSignature"));
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, "ToLocation"));
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, "AdvertisedTrainIdent"));
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, "ProductInformation"));
-        }
+        for (Map<String, Object> train : (Iterable<Map<String, Object>>) responseData.get("TrainAnnouncement"))
+            if (isPendel(train))
+                writeTrain(train, w);
         w.println("</table>");
+    }
+
+    private boolean isPendel(Map train) {
+        Collection pi = (Collection) train.get("ProductInformation");
+        return pi != null && pi.contains("Pendeltåg");
+    }
+
+    private void writeTrain(Map train, PrintWriter w) {
+        w.println("<tr>");
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "LocationSignature"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "ToLocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "AdvertisedTrainIdent"));
     }
 
     private byte[] getByteArray(InputStream stream) throws IOException {

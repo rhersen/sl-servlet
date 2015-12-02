@@ -26,18 +26,18 @@ public class StationsTest {
 
     @Test
     public void butSomeStationsAreNotInSequence() throws Exception {
-        assertEquals("9704", north("9325"));
+        assertEquals("Spå", north("Sub"));
     }
 
     @Test
     public void notEvenForSouth() throws Exception {
-        assertEquals("9529", south("9531"));
+        assertEquals("Äs", south("Åbe"));
     }
 
     @Test
     public void getSouthwestStationsStartsInStuvstaAndEndsInTumba() throws Exception {
         Deque<String> result = new ArrayDeque<>(getSouthwestStations());
-        assertEquals("9528", result.getFirst());
-        assertEquals("9524", result.getLast());
+        assertEquals("Sta", result.getFirst());
+        assertEquals("Tu", result.getLast());
     }
 }
