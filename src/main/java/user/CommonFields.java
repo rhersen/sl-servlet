@@ -13,7 +13,7 @@ public class CommonFields {
                 .forEach(e -> r.put(e.getKey(), e.getValue()));
 
         @SuppressWarnings("unchecked") Deque<Map<String, Object>>
-                trains = (Deque<Map<String, Object>>) responseData.get("Trains");
+                trains = (Deque<Map<String, Object>>) responseData.get("TrainAnnouncement");
 
         if (trains.isEmpty())
             return r;

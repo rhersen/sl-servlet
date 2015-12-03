@@ -21,7 +21,7 @@ public class CommonFieldsTest {
         Collection<Object> result = new ArrayList<>();
 
         Map<String, Object> responseData = new LinkedHashMap<>();
-        responseData.put("Trains", trains);
+        responseData.put("TrainAnnouncement", trains);
         responseData.put("LatestUpdate", "2015-08-19T22:44:05");
         responseData.put("DataAge", 22);
         result.addAll(CommonFields.get(responseData).values());

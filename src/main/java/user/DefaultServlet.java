@@ -79,7 +79,6 @@ public class DefaultServlet extends HttpServlet {
             return;
         }
 
-        writeHeader(w, "trafikverket");
         URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -118,16 +117,25 @@ public class DefaultServlet extends HttpServlet {
         InputStream inputStream = conn.getInputStream();
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
+
+        Deque<Map<String, Object>> trainAnnouncement = getTrainAnnouncement(responseData);
+        writeHeader(w, getStopAreaName(responseData));
+        w.print("<div>");
+        w.print(format("<a href=%s>", siteId));
+        w.print(siteId);
+        w.print("</a>");
+        w.print("</div>");
+
         w.println("<table>");
-        for (Map<String, Object> train : getTrainAnnouncement(responseData))
+        for (Map<String, Object> train : trainAnnouncement)
             if (isPendel(train))
                 writeTrain(train, w);
         w.println("</table>");
     }
 
     @SuppressWarnings("unchecked")
-    private Iterable<Map<String, Object>> getTrainAnnouncement(Map<String, Object> responseData) {
-        return (Iterable<Map<String, Object>>) responseData.get("TrainAnnouncement");
+    private Deque<Map<String, Object>> getTrainAnnouncement(Map<String, Object> responseData) {
+        return (Deque<Map<String, Object>>) responseData.get("TrainAnnouncement");
     }
 
     private boolean isPendel(Map train) {
@@ -140,7 +148,6 @@ public class DefaultServlet extends HttpServlet {
         w.println("<td>");
 
         for (String key : asList(
-                "LocationSignature",
                 "remaining",
                 "advertisedtimeatlocation",
                 "estimatedtimeatlocation",

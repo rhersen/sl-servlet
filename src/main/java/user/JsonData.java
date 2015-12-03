@@ -2,7 +2,6 @@ package user;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,7 +15,7 @@ public class JsonData {
         Collection<Map<String, Object>> trains = getTrains(map);
         if (trains.isEmpty())
             return map.get("SiteId");
-        return trains.stream().findFirst().get().get("StopAreaName");
+        return trains.stream().findFirst().get().get("LocationSignature");
     }
 
     static boolean hasTrains(Map<String, Object> map) {
@@ -25,16 +24,7 @@ public class JsonData {
 
     @SuppressWarnings("unchecked")
     private static Collection<Map<String, Object>> getTrains(Map<String, Object> map) {
-        return (Collection<Map<String, Object>>) map.get("Trains");
-    }
-
-    @SuppressWarnings("unchecked")
-    static Map<Integer, Map<String, Object>> indexedTrains(Map<String, Object> map) {
-        Map<Integer, Map<String, Object>> r = new LinkedHashMap<>();
-        for (Map<String, Object> train : getTrains(map)) {
-            r.put(getId(train), train);
-        }
-        return r;
+        return (Collection<Map<String, Object>>) map.get("TrainAnnouncement");
     }
 
     static int getId(Map<String, Object> train) {

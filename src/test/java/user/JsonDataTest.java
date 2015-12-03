@@ -10,18 +10,13 @@ public class JsonDataTest {
 
     @Test
     public void testGetStopAreaName() throws Exception {
-        assertEquals("Jakobsberg", JsonData.getStopAreaName(oneTrain()));
+        assertEquals("Jkb", JsonData.getStopAreaName(oneTrain()));
     }
 
     @Test
     public void testHasTrains() throws Exception {
         assertTrue(JsonData.hasTrains(oneTrain()));
         assertFalse(JsonData.hasTrains(empty()));
-    }
-
-    @Test
-    public void testGetTrains() throws Exception {
-        assertTrue(JsonData.indexedTrains(empty()).isEmpty());
     }
 
     @Test
@@ -39,7 +34,7 @@ public class JsonDataTest {
 
     private Map<String, Object> empty() {
         Map<String, Object> map = new HashMap<>();
-        map.put("Trains", new ArrayDeque<Map<String, Object>>());
+        map.put("TrainAnnouncement", new ArrayDeque<Map<String, Object>>());
         return map;
     }
 
@@ -47,13 +42,13 @@ public class JsonDataTest {
         Map<String, Object> map = new HashMap<>();
         Collection<Map<String, Object>> value = new ArrayDeque<>();
         value.add(train());
-        map.put("Trains", value);
+        map.put("TrainAnnouncement", value);
         return map;
     }
 
     private Map<String, Object> train() {
         Map<String, Object> jakobsberg = new HashMap<>();
-        jakobsberg.put("StopAreaName", "Jakobsberg");
+        jakobsberg.put("LocationSignature", "Jkb");
         return jakobsberg;
     }
 
