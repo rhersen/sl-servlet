@@ -11,8 +11,8 @@ import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static user.TrainFormatter.*;
+import static user.TrainFormatter.get;
+import static user.TrainFormatter.getRemaining;
 
 public class TrainFormatterTest {
 
@@ -101,16 +101,8 @@ public class TrainFormatterTest {
     }
 
     @Test
-    public void remaining() throws Exception {
-        Map<String, Object> train = getTrain(
-                "TimeTabledDateTime", "2015-08-18T17:00:00",
-                "ExpectedDateTime", "2015-08-18T17:01:25");
-        assertNotEquals("", get(train, "remaining"));
-    }
-
-    @Test
     public void remainingShowsSeconds() throws Exception {
-        Map<String, Object> train = getTrain("ExpectedDateTime", "2015-08-18T17:01:30");
+        Map<String, Object> train = getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:30");
         assertEquals("-30", getRemaining(train, parse("2015-08-18T17:02")));
         assertEquals("-1", getRemaining(train, parse("2015-08-18T17:01:31")));
         assertEquals("0:00", getRemaining(train, parse("2015-08-18T17:01:30")));
@@ -118,6 +110,12 @@ public class TrainFormatterTest {
         assertEquals("9:30", getRemaining(train, parse("2015-08-18T16:52")));
         assertEquals("9:59", getRemaining(train, parse("2015-08-18T16:51:31")));
         assertEquals("10m", getRemaining(train, parse("2015-08-18T16:51:30")));
+    }
+
+    @Test
+    public void remainingDoesntCrash() throws Exception {
+        Map<String, Object> train = getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:30");
+        assertEquals("0:30", getRemaining(train, parse("2015-08-18T17:01")));
     }
 
     private Map<String, Object> getTrain(String key, Object value) {

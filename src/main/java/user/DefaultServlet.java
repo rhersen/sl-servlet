@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 import static user.JsonData.getStopAreaName;
 import static user.Stations.getStations;
 import static user.Utils.getAge;
@@ -137,17 +138,19 @@ public class DefaultServlet extends HttpServlet {
     private void writeTrain(Map<String, Object> train, PrintWriter w) {
         w.println("<tr>");
         w.println("<td>");
-        w.println(TrainFormatter.get(train, "LocationSignature"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "timeatlocation"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "tolocation"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "AdvertisedTrainIdent"));
+
+        for (String key : asList(
+                "LocationSignature",
+                "remaining",
+                "advertisedtimeatlocation",
+                "estimatedtimeatlocation",
+                "timeatlocation",
+                "tolocation",
+                "AdvertisedTrainIdent"
+        )) {
+            w.println(TrainFormatter.get(train, key));
+            w.println("<td>");
+        }
     }
 
     private byte[] getByteArray(InputStream stream) throws IOException {
