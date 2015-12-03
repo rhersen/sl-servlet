@@ -118,7 +118,6 @@ public class DefaultServlet extends HttpServlet {
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
 
-        Deque<Map<String, Object>> trainAnnouncement = getTrainAnnouncement(responseData);
         writeHeader(w, getStopAreaName(responseData));
         w.print("<div>");
         w.print(format("<a href=%s>", siteId));
@@ -127,15 +126,16 @@ public class DefaultServlet extends HttpServlet {
         w.print("</div>");
 
         w.println("<table>");
-        for (Map<String, Object> train : trainAnnouncement)
-            if (isPendel(train))
-                writeTrain(train, w);
+        getTrainAnnouncement(responseData)
+                .stream()
+                .filter(this::isPendel)
+                .forEach(train -> writeTrain(train, w));
         w.println("</table>");
     }
 
     @SuppressWarnings("unchecked")
-    private Deque<Map<String, Object>> getTrainAnnouncement(Map<String, Object> responseData) {
-        return (Deque<Map<String, Object>>) responseData.get("TrainAnnouncement");
+    private Collection<Map<String, Object>> getTrainAnnouncement(Map<String, Object> responseData) {
+        return (Collection<Map<String, Object>>) responseData.get("TrainAnnouncement");
     }
 
     private boolean isPendel(Map train) {
