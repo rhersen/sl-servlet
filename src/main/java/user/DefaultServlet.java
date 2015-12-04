@@ -73,12 +73,20 @@ public class DefaultServlet extends HttpServlet {
         PrintWriter w = response.getWriter();
         writeHeaders(w);
 
-        String siteId = SiteId.get(uri);
-        if (siteId == null) {
+        String id = SiteId.get(uri);
+        if (id == null) {
             writeIndex(cache, w);
             return;
         }
 
+        if (id.matches("\\d\\d\\d\\d")) {
+            writeTrain(id, w);
+        } else {
+            writeStation(id, w);
+        }
+    }
+
+    private void writeStation(String siteId, PrintWriter w) throws IOException {
         URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -91,7 +99,6 @@ public class DefaultServlet extends HttpServlet {
                 "  <FILTER>\n" +
                 "   <AND>\n" +
                 "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
-//                "    <EQ name=\"AdvertisedTrainIdent\" value=\"" + 2769 + "\" />\n" +
                 "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
                 "    <AND>\n" +
                 "     <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
@@ -134,6 +141,61 @@ public class DefaultServlet extends HttpServlet {
         w.println("</table>");
     }
 
+    private void writeTrain(String id, PrintWriter w) throws IOException {
+        URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "text/xml");
+        conn.setDoOutput(true);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
+        outputStreamWriter.write("<REQUEST>\n" +
+                " <LOGIN authenticationkey=\"" + Key.get() + "\" />\n" +
+                " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
+                "  <FILTER>\n" +
+                "   <AND>\n" +
+                "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
+                "    <EQ name=\"AdvertisedTrainIdent\" value=\"" + id + "\" />\n" +
+                "    <AND>\n" +
+                "     <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-02:00:00)\" />\n" +
+                "     <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(02:00:00)\" />\n" +
+                "    </AND>\n" +
+                "   </AND>\n" +
+                "  </FILTER>\n" +
+                "  <INCLUDE>LocationSignature</INCLUDE>\n" +
+                "  <INCLUDE>AdvertisedTrainIdent</INCLUDE>\n" +
+                "  <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>EstimatedTimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>TimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>ProductInformation</INCLUDE>\n" +
+                "  <INCLUDE>ToLocation</INCLUDE>\n" +
+                " </QUERY>\n" +
+                "</REQUEST>");
+        outputStreamWriter.close();
+
+        if (conn.getResponseCode() != 200)
+            throw new RuntimeException(
+                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
+
+        InputStream inputStream = conn.getInputStream();
+        Map<String, Object> responseData = Parser.parse(inputStream);
+        conn.disconnect();
+
+        Object stopAreaName = getStopAreaName(responseData);
+        writeHeader(w, stopAreaName);
+        w.print("<div>");
+        w.print(format("<a href=%s>", id));
+        w.print(stopAreaName);
+        w.print("</a>");
+        w.print("</div>");
+
+        w.println("<table>");
+        getTrainAnnouncement(responseData)
+                .stream()
+                .filter(this::isPendel)
+                .forEach(train -> writeTrain(train, w));
+        w.println("</table>");
+    }
+
     @SuppressWarnings("unchecked")
     private Collection<Map<String, Object>> getTrainAnnouncement(Map<String, Object> responseData) {
         return (Collection<Map<String, Object>>) responseData.get("TrainAnnouncement");
@@ -146,19 +208,25 @@ public class DefaultServlet extends HttpServlet {
 
     private void writeTrain(Map<String, Object> train, PrintWriter w) {
         w.println("<tr>");
-        w.println("<td>");
 
         for (String key : asList(
+                "LocationSignature",
                 "remaining",
                 "advertisedtimeatlocation",
                 "estimatedtimeatlocation",
                 "timeatlocation",
-                "tolocation",
-                "AdvertisedTrainIdent"
+                "tolocation"
         )) {
-            w.println(TrainFormatter.get(train, key));
             w.println("<td>");
+            w.println(TrainFormatter.get(train, key));
         }
+
+        String advertisedTrainIdent = TrainFormatter.get(train, "AdvertisedTrainIdent");
+        w.println("<td><a href=");
+        w.println(advertisedTrainIdent);
+        w.println(">");
+        w.println(advertisedTrainIdent);
+        w.println("</a>");
     }
 
     private byte[] getByteArray(InputStream stream) throws IOException {
