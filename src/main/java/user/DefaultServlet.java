@@ -118,10 +118,11 @@ public class DefaultServlet extends HttpServlet {
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
 
-        writeHeader(w, getStopAreaName(responseData));
+        Object stopAreaName = getStopAreaName(responseData);
+        writeHeader(w, stopAreaName);
         w.print("<div>");
         w.print(format("<a href=%s>", siteId));
-        w.print(siteId);
+        w.print(stopAreaName);
         w.print("</a>");
         w.print("</div>");
 

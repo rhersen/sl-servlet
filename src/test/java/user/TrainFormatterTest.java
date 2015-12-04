@@ -31,6 +31,7 @@ public class TrainFormatterTest {
     public void removesDay() throws Exception {
         assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25"), "estimatedtimeatlocation"));
         assertEquals("17:01:25", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:25"), "advertisedtimeatlocation"));
+        assertEquals("17:01:25", get(getTrain("TimeAtLocation", "2015-08-18T17:01:25"), "timeatlocation"));
     }
 
     @Test
