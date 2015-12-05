@@ -9,7 +9,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
@@ -18,7 +20,6 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static user.JsonData.getStopAreaName;
 import static user.Stations.getStations;
-import static user.Utils.getAge;
 import static user.Utils.getByteList;
 
 public class DefaultServlet extends HttpServlet {
@@ -263,24 +264,11 @@ public class DefaultServlet extends HttpServlet {
 
     private void writeIndex(ServletContext cache, PrintWriter w) {
         writeHeader(w, "trafikverket");
-        w.print("<table>");
         for (String id : getStations()) {
-            Map<String, Object> cached = readFrom(cache, id);
-            w.print("<tr>");
-            w.print("<td>");
-            w.print(format("<a href='%s'>", id));
+            w.print(format("<a class='station-link' href='%s'>", id));
             w.print(id);
-            w.print("</a>");
-            w.print("<td>");
-            w.print(format("<a href='%s'>", id));
-            if (cached != null)
-                w.print(getStopAreaName(cached));
-            w.print("</a>");
-            w.print("<td>");
-            if (cached != null)
-                w.print(getAge(cached).getSeconds());
+            w.print("</a> ");
         }
-        w.print("</table>");
     }
 
     private void writeHeader(PrintWriter w, Object stopAreaName) {

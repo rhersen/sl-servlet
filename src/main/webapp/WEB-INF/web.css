@@ -6,6 +6,10 @@ div a {
     font-size: 24px;
 }
 
+a.station-link {
+    font-size: 80px;
+}
+
 .fresh {
     background-color: palegreen
 }
