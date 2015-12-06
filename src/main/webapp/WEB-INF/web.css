@@ -1,13 +1,26 @@
 body {
     font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    color: ivory;
+    background-color: darkslategray;
 }
 
 div a {
     font-size: 24px;
+    color: ivory;
 }
 
-a.station-link {
-    font-size: 80px;
+div.stations {
+    font-size: 48px;
+    font-weight: bold;
+    line-height: 200%;
+}
+
+div.stations a {
+    font-size: inherit;
+    background-color: yellow;
+    text-decoration: none;
+    color: black;
+    padding: 0.3em 0.3em 0.3em 0.3em;
 }
 
 .fresh {

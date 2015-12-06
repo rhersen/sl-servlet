@@ -264,11 +264,13 @@ public class DefaultServlet extends HttpServlet {
 
     private void writeIndex(ServletContext cache, PrintWriter w) {
         writeHeader(w, "trafikverket");
+        w.print("<div class='stations'>");
         for (String id : getStations()) {
-            w.print(format("<a class='station-link' href='%s'>", id));
+            w.print(format("<a href='%s'>", id));
             w.print(id);
             w.print("</a> ");
         }
+        w.print("</div>");
     }
 
     private void writeHeader(PrintWriter w, Object stopAreaName) {
