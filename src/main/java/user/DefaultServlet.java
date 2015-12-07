@@ -101,10 +101,8 @@ public class DefaultServlet extends HttpServlet {
                 "   <AND>\n" +
                 "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
                 "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
-                "    <AND>\n" +
-                "     <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
-                "     <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(00:50:00)\" />\n" +
-                "    </AND>\n" +
+                "    <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
+                "    <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(00:50:00)\" />\n" +
                 "   </AND>\n" +
                 "  </FILTER>\n" +
                 "  <INCLUDE>LocationSignature</INCLUDE>\n" +
@@ -154,12 +152,9 @@ public class DefaultServlet extends HttpServlet {
                 " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
                 "  <FILTER>\n" +
                 "   <AND>\n" +
-                "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
                 "    <EQ name=\"AdvertisedTrainIdent\" value=\"" + id + "\" />\n" +
-                "    <AND>\n" +
-                "     <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-02:00:00)\" />\n" +
-                "     <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(02:00:00)\" />\n" +
-                "    </AND>\n" +
+                "    <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-02:00:00)\" />\n" +
+                "    <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(02:00:00)\" />\n" +
                 "   </AND>\n" +
                 "  </FILTER>\n" +
                 "  <INCLUDE>LocationSignature</INCLUDE>\n" +
@@ -193,7 +188,7 @@ public class DefaultServlet extends HttpServlet {
         getTrainAnnouncement(responseData)
                 .stream()
                 .filter(this::isPendel)
-                .forEach(train -> writeTrain(train, w));
+                .forEach(train -> writeStation(train, w));
         w.println("</table>");
     }
 
@@ -211,7 +206,23 @@ public class DefaultServlet extends HttpServlet {
         w.println("<tr>");
 
         for (String key : asList(
-                "LocationSignature",
+                "remaining",
+                "advertisedtimeatlocation",
+                "estimatedtimeatlocation",
+                "timeatlocation",
+                "tolocation")) {
+            w.println("<td>");
+            w.println(TrainFormatter.get(train, key));
+        }
+
+        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
+    }
+
+    private void writeStation(Map<String, Object> train, PrintWriter w) {
+        w.println("<tr>");
+        tdLink(TrainFormatter.get(train, "LocationSignature"), w, "station");
+
+        for (String key : asList(
                 "remaining",
                 "advertisedtimeatlocation",
                 "estimatedtimeatlocation",
@@ -222,11 +233,14 @@ public class DefaultServlet extends HttpServlet {
             w.println(TrainFormatter.get(train, key));
         }
 
-        String advertisedTrainIdent = TrainFormatter.get(train, "AdvertisedTrainIdent");
-        w.println("<td><a href=");
-        w.println(advertisedTrainIdent);
+        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
+    }
+
+    private void tdLink(String s, PrintWriter w, String classes) {
+        w.println("<td class='" + classes + "'><a href=");
+        w.println(s);
         w.println(">");
-        w.println(advertisedTrainIdent);
+        w.println(s);
         w.println("</a>");
     }
 
