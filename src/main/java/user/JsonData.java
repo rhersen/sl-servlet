@@ -8,12 +8,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.Integer.parseInt;
+import static java.util.Optional.empty;
 
 public class JsonData {
     private static final Pattern hoursMinutes = Pattern.compile(".+T(\\d\\d):(\\d\\d):00");
 
     static Optional<Map<String, Object>> getFirstTrain(Map<String, Object> map) {
-        return getTrains(map).stream().findFirst();
+        Collection<Map<String, Object>> trains = getTrains(map);
+        return trains == null ? empty() : trains.stream().findFirst();
     }
 
     static boolean hasTrains(Map<String, Object> map) {

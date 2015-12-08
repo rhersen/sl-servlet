@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.*;
 
+import static java.util.Collections.emptyMap;
 import static org.junit.Assert.*;
 
 public class JsonDataTest {
@@ -15,8 +16,14 @@ public class JsonDataTest {
     }
 
     @Test
-    public void getFirstTrainDoesNotCrash() throws Exception {
+    public void getFirstTrainReturnsOptional() throws Exception {
         Optional<Map<String, Object>> result = JsonData.getFirstTrain(empty());
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void getFirstTrainDoesNotCrash() throws Exception {
+        Optional<Map<String, Object>> result = JsonData.getFirstTrain(emptyMap());
         assertFalse(result.isPresent());
     }
 
