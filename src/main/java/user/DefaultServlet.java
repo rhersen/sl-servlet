@@ -12,13 +12,14 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static user.JsonData.getStopAreaName;
+import static user.JsonData.getFirstTrain;
 import static user.Stations.getStations;
 import static user.Utils.getByteList;
 
@@ -124,13 +125,23 @@ public class DefaultServlet extends HttpServlet {
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
 
-        Object stopAreaName = getStopAreaName(responseData);
-        writeHeader(w, stopAreaName);
-        w.print("<div>");
-        w.print(format("<a href=%s>", siteId));
-        w.print(stopAreaName);
-        w.print("</a>");
-        w.print("</div>");
+        Optional<Map<String, Object>> firstTrain = getFirstTrain(responseData);
+        if (firstTrain.isPresent()) {
+            Object locationSignature = TrainFormatter.get(firstTrain.get(), "LocationSignature");
+            writeHeader(w, locationSignature);
+            w.print("<div>");
+            w.print(format("<a href=%s>", siteId));
+            w.print(locationSignature);
+            w.print("</a>");
+            w.print("</div>");
+        } else {
+            writeHeader(w, siteId);
+            w.print("<div>");
+            w.print(format("<a href=%s>", siteId));
+            w.print(siteId);
+            w.print("</a>");
+            w.print("</div>");
+        }
 
         w.println("<table>");
         getTrainAnnouncement(responseData)
@@ -176,13 +187,24 @@ public class DefaultServlet extends HttpServlet {
         Map<String, Object> responseData = Parser.parse(inputStream);
         conn.disconnect();
 
-        Object stopAreaName = getStopAreaName(responseData);
-        writeHeader(w, stopAreaName);
-        w.print("<div>");
-        w.print(format("<a href=%s>", id));
-        w.print(stopAreaName);
-        w.print("</a>");
-        w.print("</div>");
+        Optional<Map<String, Object>> firstTrain = getFirstTrain(responseData);
+        if (firstTrain.isPresent()) {
+            Object tolocation = TrainFormatter.get(firstTrain.get(), "tolocation");
+            writeHeader(w, tolocation);
+            w.print("<div>");
+            w.print(format("<a href=%s>", id));
+            w.print(TrainFormatter.get(firstTrain.get(), "AdvertisedTrainIdent"));
+            w.print("</a> ");
+            w.print(tolocation);
+            w.print("</div>");
+        } else {
+            writeHeader(w, id);
+            w.print("<div>");
+            w.print(format("<a href=%s>", id));
+            w.print(id);
+            w.print("</a>");
+            w.print("</div>");
+        }
 
         w.println("<table>");
         getTrainAnnouncement(responseData)
@@ -226,14 +248,10 @@ public class DefaultServlet extends HttpServlet {
                 "remaining",
                 "advertisedtimeatlocation",
                 "estimatedtimeatlocation",
-                "timeatlocation",
-                "tolocation"
-        )) {
+                "timeatlocation")) {
             w.println("<td>");
             w.println(TrainFormatter.get(train, key));
         }
-
-        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
     }
 
     private void tdLink(String s, PrintWriter w, String classes) {

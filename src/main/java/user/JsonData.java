@@ -3,6 +3,7 @@ package user;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,11 +12,8 @@ import static java.lang.Integer.parseInt;
 public class JsonData {
     private static final Pattern hoursMinutes = Pattern.compile(".+T(\\d\\d):(\\d\\d):00");
 
-    static Object getStopAreaName(Map<String, Object> map) {
-        Collection<Map<String, Object>> trains = getTrains(map);
-        if (trains.isEmpty())
-            return map.get("SiteId");
-        return trains.stream().findFirst().get().get("LocationSignature");
+    static Optional<Map<String, Object>> getFirstTrain(Map<String, Object> map) {
+        return getTrains(map).stream().findFirst();
     }
 
     static boolean hasTrains(Map<String, Object> map) {

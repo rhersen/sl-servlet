@@ -9,8 +9,15 @@ import static org.junit.Assert.*;
 public class JsonDataTest {
 
     @Test
-    public void testGetStopAreaName() throws Exception {
-        assertEquals("Jkb", JsonData.getStopAreaName(oneTrain()));
+    public void testGetFirstTrain() throws Exception {
+        Optional<Map<String, Object>> result = JsonData.getFirstTrain(oneTrain());
+        assertEquals("Jkb", result.get().get("LocationSignature"));
+    }
+
+    @Test
+    public void getFirstTrainDoesNotCrash() throws Exception {
+        Optional<Map<String, Object>> result = JsonData.getFirstTrain(empty());
+        assertFalse(result.isPresent());
     }
 
     @Test
