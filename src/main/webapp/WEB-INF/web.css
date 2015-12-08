@@ -27,11 +27,18 @@ td.station {
     text-align: center;
 }
 
-td.station a {
+.station a {
     font-weight: bold;
     background-color: yellow;
     text-decoration: none;
     color: black;
+    padding: 0 0.2em;
+}
+
+.train a {
+    background-color: silver;
+    text-decoration: none;
+    color: navy;
     padding: 0 0.2em;
 }
 

@@ -129,14 +129,14 @@ public class DefaultServlet extends HttpServlet {
         if (firstTrain.isPresent()) {
             Object locationSignature = TrainFormatter.get(firstTrain.get(), "LocationSignature");
             writeHeader(w, locationSignature);
-            w.print("<div>");
+            w.print("<div class='station'>");
             w.print(format("<a href=%s>", siteId));
             w.print(locationSignature);
             w.print("</a>");
             w.print("</div>");
         } else {
             writeHeader(w, siteId);
-            w.print("<div>");
+            w.print("<div class='station'>");
             w.print(format("<a href=%s>", siteId));
             w.print(siteId);
             w.print("</a>");
@@ -191,7 +191,7 @@ public class DefaultServlet extends HttpServlet {
         if (firstTrain.isPresent()) {
             Object tolocation = TrainFormatter.get(firstTrain.get(), "tolocation");
             writeHeader(w, tolocation);
-            w.print("<div>");
+            w.print("<div class='train'>");
             w.print(format("<a href=%s>", id));
             w.print(TrainFormatter.get(firstTrain.get(), "AdvertisedTrainIdent"));
             w.print("</a> ");
@@ -199,7 +199,7 @@ public class DefaultServlet extends HttpServlet {
             w.print("</div>");
         } else {
             writeHeader(w, id);
-            w.print("<div>");
+            w.print("<div class='train'>");
             w.print(format("<a href=%s>", id));
             w.print(id);
             w.print("</a>");
