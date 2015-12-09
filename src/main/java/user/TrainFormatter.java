@@ -47,8 +47,10 @@ public class TrainFormatter {
             return String.format("%dm", seconds / 60);
         else if (seconds >= 0)
             return String.format("%d:%02d", seconds / 60, seconds % 60);
-        else
+        else if (seconds >= -100)
             return String.format("%d", seconds);
+        else
+            return "";
     }
 
     private static String getTimeTabled(Map<String, Object> train) {

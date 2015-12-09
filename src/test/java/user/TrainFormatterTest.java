@@ -104,13 +104,19 @@ public class TrainFormatterTest {
     @Test
     public void remainingShowsSeconds() throws Exception {
         Map<String, Object> train = getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:30");
-        assertEquals("-30", getRemaining(train, parse("2015-08-18T17:02")));
+        assertEquals("-90", getRemaining(train, parse("2015-08-18T17:03")));
         assertEquals("-1", getRemaining(train, parse("2015-08-18T17:01:31")));
         assertEquals("0:00", getRemaining(train, parse("2015-08-18T17:01:30")));
         assertEquals("0:30", getRemaining(train, parse("2015-08-18T17:01")));
         assertEquals("9:30", getRemaining(train, parse("2015-08-18T16:52")));
         assertEquals("9:59", getRemaining(train, parse("2015-08-18T16:51:31")));
         assertEquals("10m", getRemaining(train, parse("2015-08-18T16:51:30")));
+    }
+
+    @Test
+    public void dontShowSecondsLessThanMinus99() throws Exception {
+        Map<String, Object> train = getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:30");
+        assertEquals("", getRemaining(train, parse("2015-08-18T17:04")));
     }
 
     @Test
