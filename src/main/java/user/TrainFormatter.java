@@ -52,17 +52,18 @@ public class TrainFormatter {
     }
 
     private static String getTimeTabled(Map<String, Object> train) {
-        return getTimeWithoutDate(train, "AdvertisedTimeAtLocation");
+        Matcher m;
+        String raw = getString(train, "AdvertisedTimeAtLocation");
+        for (Pattern pattern : asList(wholeMinutes, dateTime))
+            if ((m = pattern.matcher(raw)).matches())
+                return m.group(1);
+        return raw;
     }
 
     private static String getActual(Map<String, Object> train) {
-        return getTimeWithoutDate(train, "TimeAtLocation");
-    }
-
-    private static String getTimeWithoutDate(Map<String, Object> train, String key) {
         Matcher m;
-        String raw = getString(train, key);
-        for (Pattern pattern : asList(wholeMinutes, dateTime))
+        String raw = getString(train, "TimeAtLocation");
+        for (Pattern pattern : asList(onlyMinutes, dateTime))
             if ((m = pattern.matcher(raw)).matches())
                 return m.group(1);
         return raw;
@@ -86,7 +87,7 @@ public class TrainFormatter {
 
         Matcher m;
         String raw = getString(train, "EstimatedTimeAtLocation");
-        for (Pattern pattern : asList(wholeMinutes, dateTime))
+        for (Pattern pattern : asList(onlyMinutes, dateTime))
             if ((m = pattern.matcher(raw)).matches())
                 return m.group(1);
         return raw;

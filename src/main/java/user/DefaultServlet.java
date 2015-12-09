@@ -18,7 +18,6 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static user.JsonData.getFirstTrain;
 import static user.Stations.getStations;
 import static user.Utils.getByteList;
@@ -226,16 +225,16 @@ public class DefaultServlet extends HttpServlet {
 
     private void writeTrain(Map<String, Object> train, PrintWriter w) {
         w.println("<tr>");
-
-        for (String key : asList(
-                "remaining",
-                "advertisedtimeatlocation",
-                "estimatedtimeatlocation",
-                "timeatlocation",
-                "tolocation")) {
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, key));
-        }
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "remaining"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        w.println("<td><i>");
+        w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
+        w.println("<td><b>");
+        w.println(TrainFormatter.get(train, "timeatlocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "tolocation"));
 
         tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
     }
@@ -243,15 +242,14 @@ public class DefaultServlet extends HttpServlet {
     private void writeStation(Map<String, Object> train, PrintWriter w) {
         w.println("<tr>");
         tdLink(TrainFormatter.get(train, "LocationSignature"), w, "station");
-
-        for (String key : asList(
-                "remaining",
-                "advertisedtimeatlocation",
-                "estimatedtimeatlocation",
-                "timeatlocation")) {
-            w.println("<td>");
-            w.println(TrainFormatter.get(train, key));
-        }
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "remaining"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        w.println("<td><i>");
+        w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
+        w.println("<td><b>");
+        w.println(TrainFormatter.get(train, "timeatlocation"));
     }
 
     private void tdLink(String s, PrintWriter w, String classes) {

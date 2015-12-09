@@ -36,9 +36,9 @@ public class TrainFormatterTest {
 
     @Test
     public void removesSecondsIfZero() throws Exception {
-        assertEquals("17:01", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00"), "estimatedtimeatlocation"));
         assertEquals("17:01", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00"), "advertisedtimeatlocation"));
-        assertEquals("17:01", get(getTrain("TimeAtLocation", "2015-08-18T17:01:00"), "timeatlocation"));
+        assertEquals("01", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00"), "estimatedtimeatlocation"));
+        assertEquals("01", get(getTrain("TimeAtLocation", "2015-08-18T17:01:00"), "timeatlocation"));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class TrainFormatterTest {
         train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
         train.put("EstimatedTimeAtLocation", "2015-08-18T17:00:00");
         train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
-        assertEquals("17:00", get(train, "estimatedtimeatlocation"));
+        assertEquals("00", get(train, "estimatedtimeatlocation"));
     }
 
     @Test
