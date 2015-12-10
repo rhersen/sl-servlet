@@ -99,6 +99,7 @@ public class DefaultServlet extends HttpServlet {
                 " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
                 "  <FILTER>\n" +
                 "   <AND>\n" +
+                "    <IN name=\"ProductInformation\" value=\"Pendeltåg\" />\n" +
                 "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
                 "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
                 "    <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
@@ -143,10 +144,7 @@ public class DefaultServlet extends HttpServlet {
         }
 
         w.println("<table>");
-        getTrainAnnouncement(responseData)
-                .stream()
-                .filter(this::isPendel)
-                .forEach(train -> writeTrain(train, w));
+        getTrainAnnouncement(responseData).stream().forEach(train -> writeTrain(train, w));
         w.println("</table>");
     }
 
@@ -206,10 +204,7 @@ public class DefaultServlet extends HttpServlet {
         }
 
         w.println("<table>");
-        getTrainAnnouncement(responseData)
-                .stream()
-                .filter(this::isPendel)
-                .forEach(train -> writeStation(train, w));
+        getTrainAnnouncement(responseData).stream().forEach(train -> writeStation(train, w));
         w.println("</table>");
     }
 
