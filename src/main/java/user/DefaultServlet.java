@@ -76,7 +76,7 @@ public class DefaultServlet extends HttpServlet {
 
         String id = SiteId.get(uri);
         if (id == null) {
-            writeIndex(cache, w);
+            writeIndex(w);
             return;
         }
 
@@ -213,11 +213,6 @@ public class DefaultServlet extends HttpServlet {
         return (Collection<Map<String, Object>>) responseData.get("TrainAnnouncement");
     }
 
-    private boolean isPendel(Map train) {
-        Collection pi = (Collection) train.get("ProductInformation");
-        return pi != null && pi.contains("Pendeltåg");
-    }
-
     private void writeTrain(Map<String, Object> train, PrintWriter w) {
         w.println("<tr>");
         w.println("<td>");
@@ -287,7 +282,7 @@ public class DefaultServlet extends HttpServlet {
         w.print("<meta charset=utf-8>");
     }
 
-    private void writeIndex(ServletContext cache, PrintWriter w) {
+    private void writeIndex(PrintWriter w) {
         writeHeader(w, "trafikverket");
         w.print("<div class='stations'>");
         for (String id : getStations()) {
@@ -302,11 +297,6 @@ public class DefaultServlet extends HttpServlet {
         tag("title", "", stopAreaName, w);
         w.print(format("<style>%s</style>", css));
         w.print("<div><a href='/'>Hem</a></div>");
-    }
-
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> readFrom(ServletContext cache, String siteId) {
-        return (Map<String, Object>) cache.getAttribute(siteId);
     }
 
     private void tag(String tag, String classes, Object text, PrintWriter writer) {
