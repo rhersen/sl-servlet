@@ -18,6 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
+import static java.time.LocalTime.NOON;
+import static java.time.LocalTime.now;
 import static user.JsonData.getFirstTrain;
 import static user.Stations.getStations;
 import static user.Utils.getByteList;
@@ -94,12 +96,14 @@ public class DefaultServlet extends HttpServlet {
         conn.setRequestProperty("Content-Type", "text/xml");
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
+        String direction = now().isBefore(NOON) ? "[02468]$" : "[13579]$";
         outputStreamWriter.write("<REQUEST>\n" +
                 " <LOGIN authenticationkey=\"" + Key.get() + "\" />\n" +
                 " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
                 "  <FILTER>\n" +
                 "   <AND>\n" +
                 "    <IN name=\"ProductInformation\" value=\"Pendeltåg\" />\n" +
+                "    <LIKE name=\"AdvertisedTrainIdent\" value=\"" + direction + "\" />\n" +
                 "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
                 "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
                 "    <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
