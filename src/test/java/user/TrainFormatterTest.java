@@ -11,8 +11,9 @@ import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static user.TrainFormatter.get;
-import static user.TrainFormatter.getRemaining;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static user.TrainFormatter.*;
 
 public class TrainFormatterTest {
 
@@ -29,16 +30,44 @@ public class TrainFormatterTest {
 
     @Test
     public void removesDay() throws Exception {
-        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25"), "estimatedtimeatlocation"));
-        assertEquals("17:01:25", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:25"), "advertisedtimeatlocation"));
-        assertEquals("17:01:25", get(getTrain("TimeAtLocation", "2015-08-18T17:01:25"), "timeatlocation"));
+        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25"),
+                "estimatedtimeatlocation"));
+        assertEquals("17:01:25", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:25"),
+                "advertisedtimeatlocation"));
+        assertEquals("17:01:25", get(getTrain("TimeAtLocation", "2015-08-18T17:01:25"),
+                "timeatlocation"));
     }
 
     @Test
     public void removesSecondsIfZero() throws Exception {
-        assertEquals("17:01", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00"), "advertisedtimeatlocation"));
-        assertEquals("01", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00"), "estimatedtimeatlocation"));
-        assertEquals("01", get(getTrain("TimeAtLocation", "2015-08-18T17:01:00"), "timeatlocation"));
+        assertEquals("17:01", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00"),
+                "advertisedtimeatlocation"));
+        assertEquals("01", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00"),
+                "estimatedtimeatlocation"));
+        assertEquals("01", get(getTrain("TimeAtLocation", "2015-08-18T17:01:00"),
+                "timeatlocation"));
+    }
+
+    @Test
+    public void actual() throws Exception {
+        assertFalse(isActual(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25")));
+        assertTrue(isActual(getTrain("TimeAtLocation", "2015-08-18T17:01:25")));
+    }
+
+    @Test
+    public void estimated() throws Exception {
+        assertFalse(isEstimated(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:25")));
+        assertTrue(isEstimated(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25")));
+        assertFalse(isEstimated(getTrain("TimeAtLocation", "2015-08-18T17:01:25")));
+        assertFalse(isEstimated(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25",
+                "TimeAtLocation", "2015-08-18T17:01:25")));
+    }
+
+    @Test
+    public void estimatedTime() throws Exception {
+        assertEquals(time(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00")), "17:01");
+        assertEquals(time(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00")), "17:01");
+        assertEquals(time(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00", "TimeAtLocation", "2015-08-18T17:01:25")), "17:01:25");
     }
 
     @Test
@@ -69,7 +98,8 @@ public class TrainFormatterTest {
 
     @Test
     public void doesntCrashIfNoDateTimeDelimiter() throws Exception {
-        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "17:01:25"), "estimatedtimeatlocation"));
+        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "17:01:25"),
+                "estimatedtimeatlocation"));
     }
 
     @Test

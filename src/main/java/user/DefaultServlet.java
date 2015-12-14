@@ -219,12 +219,14 @@ public class DefaultServlet extends HttpServlet {
         w.println(TrainFormatter.get(train, "remaining"));
         w.println("<td>");
         w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
-        w.println("<td><i>");
-        w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
-        w.println("<td><b>");
-        w.println(TrainFormatter.get(train, "timeatlocation"));
         w.println("<td>");
         w.println(TrainFormatter.get(train, "tolocation"));
+        w.println("<td>");
+        if (TrainFormatter.isEstimated(train))
+            w.println("<i>");
+        if (TrainFormatter.isActual(train))
+            w.println("<b>");
+        w.println(TrainFormatter.get(train, "time"));
 
         tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
     }
@@ -236,10 +238,12 @@ public class DefaultServlet extends HttpServlet {
         w.println(TrainFormatter.get(train, "remaining"));
         w.println("<td>");
         w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
-        w.println("<td><i>");
-        w.println(TrainFormatter.get(train, "estimatedtimeatlocation"));
-        w.println("<td><b>");
-        w.println(TrainFormatter.get(train, "timeatlocation"));
+        w.println("<td>");
+        if (TrainFormatter.isEstimated(train))
+            w.println("<i>");
+        if (TrainFormatter.isActual(train))
+            w.println("<b>");
+        w.println(TrainFormatter.get(train, "time"));
     }
 
     private void tdLink(String s, PrintWriter w, String classes) {

@@ -25,7 +25,7 @@ public class TrainFormatter {
         if (key.equals("estimatedtimeatlocation"))
             return getExpected(train);
         if (key.equals("advertisedtimeatlocation"))
-            return getTimeTabled(train);
+            return getWholeMinutes(train, "AdvertisedTimeAtLocation");
         if (key.equals("timeatlocation"))
             return getActual(train);
         if (key.equals("displaytime"))
@@ -34,6 +34,8 @@ public class TrainFormatter {
             return getDestination(train);
         if (key.equals("remaining"))
             return getRemaining(train, LocalDateTime.now());
+        if (key.equals("time"))
+            return time(train);
         return getString(train, key);
     }
 
@@ -53,9 +55,9 @@ public class TrainFormatter {
             return "";
     }
 
-    private static String getTimeTabled(Map<String, Object> train) {
+    private static String getWholeMinutes(Map<String, Object> train, String field) {
         Matcher m;
-        String raw = getString(train, "AdvertisedTimeAtLocation");
+        String raw = getString(train, field);
         for (Pattern pattern : asList(wholeMinutes, dateTime))
             if ((m = pattern.matcher(raw)).matches())
                 return m.group(1);
@@ -111,5 +113,22 @@ public class TrainFormatter {
     private static String getString(Map<String, Object> map, String key) {
         Object value = map.get(key);
         return value == null ? "" : value.toString();
+    }
+
+    public static boolean isEstimated(Map<String, Object> train) {
+        return train.get("EstimatedTimeAtLocation") != null && train.get("TimeAtLocation") == null;
+    }
+
+    public static boolean isActual(Map<String, Object> train) {
+        return train.get("TimeAtLocation") != null;
+    }
+
+
+    public static String time(Map<String, Object> train) {
+        if (isActual(train))
+            return getWholeMinutes(train, "TimeAtLocation");
+        if (isEstimated(train))
+            return getWholeMinutes(train, "EstimatedTimeAtLocation");
+        return getWholeMinutes(train, "AdvertisedTimeAtLocation");
     }
 }
