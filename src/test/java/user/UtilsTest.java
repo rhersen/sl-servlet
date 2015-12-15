@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class UtilsTest {
 
         assertFalse(result.isNegative());
     }
+
     @Test
     public void testIsExpired() throws Exception {
         assertFalse(isExpired(updatedSecondsAgo(59)));
@@ -47,6 +49,16 @@ public class UtilsTest {
         assertEquals("recent", getAgeClass(updatedSecondsAgo(128)));
         assertEquals("stale", getAgeClass(updatedSecondsAgo(512)));
         assertEquals("dead", getAgeClass(updatedSecondsAgo(2048)));
+    }
+
+    @Test
+    public void directionIsNorthboundBeforeNoon() throws Exception {
+        assertEquals("[02468]$", getDirectionRegex(LocalTime.of(7, 15)));
+    }
+
+    @Test
+    public void directionIsSouthboundInTheAfternoon() throws Exception {
+        assertEquals("[13579]$", getDirectionRegex(LocalTime.of(16, 53)));
     }
 
     private Map<String, Object> updatedSecondsAgo(int seconds) {
