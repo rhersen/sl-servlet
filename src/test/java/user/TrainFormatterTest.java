@@ -9,10 +9,7 @@ import java.util.Map;
 
 import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static user.TrainFormatter.*;
 
 public class TrainFormatterTest {
@@ -30,22 +27,14 @@ public class TrainFormatterTest {
 
     @Test
     public void removesDay() throws Exception {
-        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:25"),
-                "estimatedtimeatlocation"));
         assertEquals("17:01:25", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:25"),
                 "advertisedtimeatlocation"));
-        assertEquals("17:01:25", get(getTrain("TimeAtLocation", "2015-08-18T17:01:25"),
-                "timeatlocation"));
     }
 
     @Test
     public void removesSecondsIfZero() throws Exception {
         assertEquals("17:01", get(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00"),
                 "advertisedtimeatlocation"));
-        assertEquals("01", get(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00"),
-                "estimatedtimeatlocation"));
-        assertEquals("01", get(getTrain("TimeAtLocation", "2015-08-18T17:01:00"),
-                "timeatlocation"));
     }
 
     @Test
@@ -71,38 +60,6 @@ public class TrainFormatterTest {
     }
 
     @Test
-    public void showsDeviation() throws Exception {
-        Map<String, Object> deviation = new HashMap<>();
-        deviation.put("Text", "Inställd");
-        deviation.put("Consequence", "CANCELLED");
-        deviation.put("ImportanceLevel", 0);
-        Map<String, Object> train = new HashMap<>();
-        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("EstimatedTimeAtLocation", "2015-08-18T17:00:00");
-        train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
-        assertEquals("Inställd", get(train, "estimatedtimeatlocation"));
-    }
-
-    @Test
-    public void butNotForImportanceLevel5() throws Exception {
-        Map<String, Object> deviation = new HashMap<>();
-        deviation.put("Text", "Resa förbi Arlanda C kräver både UL- och SL- biljett.");
-        deviation.put("Consequence", "INFORMATION");
-        deviation.put("ImportanceLevel", 5);
-        Map<String, Object> train = new HashMap<>();
-        train.put("TimeTabledDateTime", "2015-08-18T17:00:00");
-        train.put("EstimatedTimeAtLocation", "2015-08-18T17:00:00");
-        train.put("Deviations", new ArrayDeque<>(singletonList(deviation)));
-        assertEquals("00", get(train, "estimatedtimeatlocation"));
-    }
-
-    @Test
-    public void doesntCrashIfNoDateTimeDelimiter() throws Exception {
-        assertEquals("17:01:25", get(getTrain("EstimatedTimeAtLocation", "17:01:25"),
-                "estimatedtimeatlocation"));
-    }
-
-    @Test
     public void doesntCrashIfNoExpectedDateTime() throws Exception {
         assertEquals("", get(getTrain("TimeTabledDateTime", "17:01:25"), "expecteddatetime"));
     }
@@ -113,11 +70,6 @@ public class TrainFormatterTest {
                 "TimeTabledDateTime", "2015-08-18T17:00:00",
                 "ExpectedDateTime", "2015-08-18T17:00:00");
         assertEquals("", get(train, "timetableddatetime"));
-    }
-
-    @Test
-    public void showsDisplayTimeIfRelative() throws Exception {
-        assertEquals("7 min", get(getTrain("DisplayTime", "7 min"), "displaytime"));
     }
 
     @Test

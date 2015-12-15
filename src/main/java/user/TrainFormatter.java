@@ -2,7 +2,6 @@ package user;
 
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -11,25 +10,15 @@ import java.util.regex.Pattern;
 import static java.time.Duration.between;
 import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 public class TrainFormatter {
 
     private static final Pattern wholeMinutes = Pattern.compile(".+T(.+):00");
-    private static final Pattern onlyMinutes = Pattern.compile(".+T.+:(.+):00");
     private static final Pattern dateTime = Pattern.compile(".+T(.+)");
-    private static final Pattern hhmm = Pattern.compile("\\d\\d:\\d\\d");
 
     public static String get(Map<String, Object> train, String key) {
-        if (key.equals("estimatedtimeatlocation"))
-            return getExpected(train);
         if (key.equals("advertisedtimeatlocation"))
             return getWholeMinutes(train, "AdvertisedTimeAtLocation");
-        if (key.equals("timeatlocation"))
-            return getActual(train);
-        if (key.equals("displaytime"))
-            return getDisplay(train);
         if (key.equals("tolocation"))
             return getDestination(train);
         if (key.equals("remaining"))
@@ -62,44 +51,6 @@ public class TrainFormatter {
             if ((m = pattern.matcher(raw)).matches())
                 return m.group(1);
         return raw;
-    }
-
-    private static String getActual(Map<String, Object> train) {
-        Matcher m;
-        String raw = getString(train, "TimeAtLocation");
-        for (Pattern pattern : asList(onlyMinutes, dateTime))
-            if ((m = pattern.matcher(raw)).matches())
-                return m.group(1);
-        return raw;
-    }
-
-    private static String getExpected(Map<String, Object> train) {
-        @SuppressWarnings("unchecked") Collection<Map<String, Object>>
-                deviations = (Collection<Map<String, Object>>) train.get("Deviations");
-        if (deviations != null && !deviations.isEmpty()) {
-            Collection<Map<String, Object>> important = deviations
-                    .stream()
-                    .filter(deviation -> (Integer) deviation.get("ImportanceLevel") < 5)
-                    .collect(toList());
-            if (!important.isEmpty())
-                return important
-                        .stream()
-                        .map(deviation -> deviation.get("Text"))
-                        .map(Object::toString)
-                        .collect(joining());
-        }
-
-        Matcher m;
-        String raw = getString(train, "EstimatedTimeAtLocation");
-        for (Pattern pattern : asList(onlyMinutes, dateTime))
-            if ((m = pattern.matcher(raw)).matches())
-                return m.group(1);
-        return raw;
-    }
-
-    private static String getDisplay(Map<String, Object> train) {
-        String raw = getString(train, "DisplayTime");
-        return hhmm.matcher(raw).matches() ? "" : raw;
     }
 
     private static String getDestination(Map<String, Object> train) {
