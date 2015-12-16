@@ -11,12 +11,12 @@ import static java.time.Duration.between;
 import static java.time.LocalDateTime.parse;
 import static java.util.Arrays.asList;
 
-public class TrainFormatter {
+class TrainFormatter {
 
     private static final Pattern wholeMinutes = Pattern.compile(".+T(.+):00");
     private static final Pattern dateTime = Pattern.compile(".+T(.+)");
 
-    public static String get(Map<String, Object> train, String key) {
+    static String get(Map<String, Object> train, String key) {
         if (key.equals("advertisedtimeatlocation"))
             return getWholeMinutes(train, "AdvertisedTimeAtLocation");
         if (key.equals("tolocation"))
@@ -28,7 +28,7 @@ public class TrainFormatter {
         return getString(train, key);
     }
 
-    public static String getRemaining(Map<String, Object> train, Temporal now) {
+    static String getRemaining(Map<String, Object> train, Temporal now) {
         String t = getString(train, "EstimatedTimeAtLocation");
         if (t.isEmpty())
             t = getString(train, "AdvertisedTimeAtLocation");
@@ -66,16 +66,15 @@ public class TrainFormatter {
         return value == null ? "" : value.toString();
     }
 
-    public static boolean isEstimated(Map<String, Object> train) {
+    static boolean isEstimated(Map<String, Object> train) {
         return train.get("EstimatedTimeAtLocation") != null && train.get("TimeAtLocation") == null;
     }
 
-    public static boolean isActual(Map<String, Object> train) {
+    static boolean isActual(Map<String, Object> train) {
         return train.get("TimeAtLocation") != null;
     }
 
-
-    public static String time(Map<String, Object> train) {
+    static String time(Map<String, Object> train) {
         if (isActual(train))
             return getWholeMinutes(train, "TimeAtLocation");
         if (isEstimated(train))

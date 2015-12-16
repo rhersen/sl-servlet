@@ -13,7 +13,7 @@ import static java.time.Duration.between;
 import static java.time.LocalDateTime.*;
 import static java.time.LocalTime.NOON;
 
-public class Utils {
+class Utils {
     static List<Byte> getByteList(InputStream stream) throws IOException {
         List<Byte> list = new ArrayList<>();
         int read;

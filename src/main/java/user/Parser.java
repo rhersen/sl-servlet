@@ -10,8 +10,8 @@ import java.util.*;
 
 import static com.fasterxml.jackson.core.JsonToken.*;
 
-public class Parser {
-    public static Map<String, Object> parse(InputStream in) throws IOException {
+class Parser {
+    static Map<String, Object> parse(InputStream in) throws IOException {
         JsonParser p = new JsonFactory().createParser(in);
         skipUntilTrains(p);
         //noinspection unchecked

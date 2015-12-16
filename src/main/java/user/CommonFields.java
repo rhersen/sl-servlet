@@ -2,7 +2,7 @@ package user;
 
 import java.util.*;
 
-public class CommonFields {
+class CommonFields {
     static Map<String, Object> get(Map<String, Object> responseData) {
         Map<String, Object> r = new LinkedHashMap<>();
 

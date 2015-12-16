@@ -5,11 +5,10 @@ import java.net.URLDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SiteId {
-
+class SiteId {
     private static final Pattern pattern = Pattern.compile(".*/([^/]+)");
 
-    static String get(String requestURI) {
+    static String get(CharSequence requestURI) {
         Matcher matcher = pattern.matcher(requestURI);
         if (matcher.matches())
             try {

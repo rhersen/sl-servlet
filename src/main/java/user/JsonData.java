@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import static java.lang.Integer.parseInt;
 import static java.util.Optional.empty;
 
-public class JsonData {
+class JsonData {
     private static final Pattern hoursMinutes = Pattern.compile(".+T(\\d\\d):(\\d\\d):00");
 
     static Optional<Map<String, Object>> getFirstTrain(Map<String, Object> map) {

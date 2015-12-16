@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 
-public class Stations {
+class Stations {
 
     private static final List<String> ids =
             asList("Spå", "Sub", "Ke", "Cst", "Sst", "Åbe", "Äs", "Sta", "Hu", "Flb", "Tul", "Tu");
@@ -18,7 +18,7 @@ public class Stations {
         return ids.subList(7, 12).stream().map(Object::toString).collect(Collectors.toList());
     }
 
-    public static String south(String north) {
+    static String south(String north) {
         List<String> stations = getStations();
         int index = stations.indexOf(north);
         if (index != -1 && index != stations.size() - 1)
@@ -27,7 +27,7 @@ public class Stations {
             return "" + (Integer.valueOf(north) - 1);
     }
 
-    public static String north(String south) {
+    static String north(String south) {
         List<String> stations = getStations();
         int index = stations.indexOf(south);
         if (index > 0)
