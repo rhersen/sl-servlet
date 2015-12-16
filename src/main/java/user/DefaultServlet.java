@@ -21,8 +21,7 @@ import static java.lang.String.format;
 import static java.time.LocalTime.now;
 import static user.JsonData.getFirstTrain;
 import static user.Stations.getStations;
-import static user.Utils.getByteList;
-import static user.Utils.getDirectionRegex;
+import static user.Utils.*;
 
 public class DefaultServlet extends HttpServlet {
 
@@ -82,10 +81,10 @@ public class DefaultServlet extends HttpServlet {
         else if (id.matches("\\d\\d\\d\\d"))
             writeTrain(id, w);
         else
-            writeStation(id, w);
+            writeStation(id, request.getQueryString(), w);
     }
 
-    private void writeStation(String siteId, PrintWriter w) throws IOException {
+    private void writeStation(String siteId, String direction, PrintWriter w) throws IOException {
         URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -98,7 +97,7 @@ public class DefaultServlet extends HttpServlet {
                 "  <FILTER>\n" +
                 "   <AND>\n" +
                 "    <IN name=\"ProductInformation\" value=\"Pendeltåg\" />\n" +
-                "    <LIKE name=\"AdvertisedTrainIdent\" value=\"" + getDirectionRegex(now()) +
+                "    <LIKE name=\"AdvertisedTrainIdent\" value=\"" + getDirectionRegex(direction) +
                 "\" />\n" +
                 "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
                 "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
@@ -287,10 +286,11 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void writeIndex(PrintWriter w) {
+        String direction = getDefaultDirection(now());
         writeHeader(w, "trafikverket");
         w.print("<div class='stations'>");
         for (String id : getStations()) {
-            w.print(format("<a href='%s'>", id));
+            w.print(format("<a href='%s?%s'>", id, direction));
             w.print(id);
             w.print("</a> ");
         }

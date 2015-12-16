@@ -10,7 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 import static java.time.Duration.between;
-import static java.time.LocalDateTime.*;
+import static java.time.LocalDateTime.now;
+import static java.time.LocalDateTime.parse;
 import static java.time.LocalTime.NOON;
 
 class Utils {
@@ -43,7 +44,13 @@ class Utils {
         return responseData == null || getAge(responseData).compareTo(Duration.ofSeconds(60)) > 0;
     }
 
-    static String getDirectionRegex(LocalTime now) {
-        return now.isBefore(NOON) ? "[02468]$" : "[13579]$";
+    static String getDefaultDirection(LocalTime now) {
+        return now.isBefore(NOON) ? "n" : "s";
+    }
+
+    static String getDirectionRegex(String direction) {
+        if (direction == null)
+            return "[0-9]$";
+        return direction.equals("n") ? "[02468]$" : "[13579]$";
     }
 }

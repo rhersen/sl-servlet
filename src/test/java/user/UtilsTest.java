@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
-import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,12 +52,17 @@ public class UtilsTest {
 
     @Test
     public void directionIsNorthboundBeforeNoon() throws Exception {
-        assertEquals("[02468]$", getDirectionRegex(LocalTime.of(7, 15)));
+        assertEquals("[02468]$", getDirectionRegex("n"));
     }
 
     @Test
     public void directionIsSouthboundInTheAfternoon() throws Exception {
-        assertEquals("[13579]$", getDirectionRegex(LocalTime.of(16, 53)));
+        assertEquals("[13579]$", getDirectionRegex("s"));
+    }
+
+    @Test
+    public void directionIsBoth() throws Exception {
+        assertEquals("[0-9]$", getDirectionRegex(null));
     }
 
     private Map<String, Object> updatedSecondsAgo(int seconds) {
