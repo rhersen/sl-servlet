@@ -77,16 +77,12 @@ public class DefaultServlet extends HttpServlet {
         writeHeaders(w);
 
         String id = SiteId.get(uri);
-        if (id == null) {
+        if (id == null)
             writeIndex(w);
-            return;
-        }
-
-        if (id.matches("\\d\\d\\d\\d")) {
+        else if (id.matches("\\d\\d\\d\\d"))
             writeTrain(id, w);
-        } else {
+        else
             writeStation(id, w);
-        }
     }
 
     private void writeStation(String siteId, PrintWriter w) throws IOException {
@@ -102,7 +98,8 @@ public class DefaultServlet extends HttpServlet {
                 "  <FILTER>\n" +
                 "   <AND>\n" +
                 "    <IN name=\"ProductInformation\" value=\"Pendeltåg\" />\n" +
-                "    <LIKE name=\"AdvertisedTrainIdent\" value=\"" + getDirectionRegex(now()) + "\" />\n" +
+                "    <LIKE name=\"AdvertisedTrainIdent\" value=\"" + getDirectionRegex(now()) +
+                "\" />\n" +
                 "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
                 "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
                 "    <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
