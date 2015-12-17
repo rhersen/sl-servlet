@@ -2,8 +2,7 @@ package user;
 
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
-import java.util.Deque;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,12 +44,13 @@ class TrainFormatter {
     }
 
     private static String getWholeMinutes(Map<String, Object> train, String field) {
-        Matcher m;
-        String raw = getString(train, field);
-        for (Pattern pattern : asList(wholeMinutes, dateTime))
-            if ((m = pattern.matcher(raw)).matches())
-                return m.group(1);
-        return raw;
+        String value = getString(train, field);
+        return asList(wholeMinutes, dateTime).stream()
+                .map(p -> p.matcher(value))
+                .filter(Matcher::matches)
+                .map(m -> m.group(1))
+                .findFirst()
+                .orElse(value);
     }
 
     private static String getDestination(Map<String, Object> train) {
