@@ -18,10 +18,9 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
-import static java.time.LocalTime.now;
 import static user.JsonData.getFirstTrain;
-import static user.Stations.getStations;
-import static user.Utils.*;
+import static user.Utils.getByteList;
+import static user.Utils.getDirectionRegex;
 
 public class DefaultServlet extends HttpServlet {
 
@@ -91,29 +90,14 @@ public class DefaultServlet extends HttpServlet {
         conn.setRequestProperty("Content-Type", "text/xml");
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
-        outputStreamWriter.write("<REQUEST>\n" +
-                " <LOGIN authenticationkey=\"" + Key.get() + "\" />\n" +
-                " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
-                "  <FILTER>\n" +
-                "   <AND>\n" +
-                "    <IN name=\"ProductInformation\" value=\"Pendeltåg\" />\n" +
-                "    <LIKE name=\"AdvertisedTrainIdent\" value=\"" + getDirectionRegex(direction) +
-                "\" />\n" +
-                "    <EQ name=\"ActivityType\" value=\"Avgang\" />\n" +
-                "    <EQ name=\"LocationSignature\" value=\"" + siteId + "\" />\n" +
-                "    <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-00:10:00)\" />\n" +
-                "    <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(00:50:00)\" />\n" +
-                "   </AND>\n" +
-                "  </FILTER>\n" +
-                "  <INCLUDE>LocationSignature</INCLUDE>\n" +
-                "  <INCLUDE>AdvertisedTrainIdent</INCLUDE>\n" +
-                "  <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>\n" +
-                "  <INCLUDE>EstimatedTimeAtLocation</INCLUDE>\n" +
-                "  <INCLUDE>TimeAtLocation</INCLUDE>\n" +
-                "  <INCLUDE>ProductInformation</INCLUDE>\n" +
-                "  <INCLUDE>ToLocation</INCLUDE>\n" +
-                " </QUERY>\n" +
-                "</REQUEST>");
+        outputStreamWriter.write(request(
+                "<IN name='ProductInformation' value='Pendeltåg' />" +
+                        "<LIKE name='AdvertisedTrainIdent' value='" + getDirectionRegex(direction) +
+                        "' />" +
+                        "<EQ name='ActivityType' value='Avgang' />" +
+                        "<EQ name='LocationSignature' value='" + siteId + "' />" +
+                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-00:10:00)' />" +
+                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(00:50:00)' />"));
         outputStreamWriter.close();
 
         if (conn.getResponseCode() != 200)
@@ -154,25 +138,10 @@ public class DefaultServlet extends HttpServlet {
         conn.setRequestProperty("Content-Type", "text/xml");
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
-        outputStreamWriter.write("<REQUEST>\n" +
-                " <LOGIN authenticationkey=\"" + Key.get() + "\" />\n" +
-                " <QUERY objecttype=\"TrainAnnouncement\" orderby=\"AdvertisedTimeAtLocation\">\n" +
-                "  <FILTER>\n" +
-                "   <AND>\n" +
-                "    <EQ name=\"AdvertisedTrainIdent\" value=\"" + id + "\" />\n" +
-                "    <GT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(-02:00:00)\" />\n" +
-                "    <LT name=\"AdvertisedTimeAtLocation\" value=\"$dateadd(02:00:00)\" />\n" +
-                "   </AND>\n" +
-                "  </FILTER>\n" +
-                "  <INCLUDE>LocationSignature</INCLUDE>\n" +
-                "  <INCLUDE>AdvertisedTrainIdent</INCLUDE>\n" +
-                "  <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>\n" +
-                "  <INCLUDE>EstimatedTimeAtLocation</INCLUDE>\n" +
-                "  <INCLUDE>TimeAtLocation</INCLUDE>\n" +
-                "  <INCLUDE>ProductInformation</INCLUDE>\n" +
-                "  <INCLUDE>ToLocation</INCLUDE>\n" +
-                " </QUERY>\n" +
-                "</REQUEST>");
+        outputStreamWriter.write(request(
+                "<EQ name='AdvertisedTrainIdent' value='" + id + "' />" +
+                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-02:00:00)' />" +
+                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(02:00:00)' />"));
         outputStreamWriter.close();
 
         if (conn.getResponseCode() != 200)
@@ -205,6 +174,27 @@ public class DefaultServlet extends HttpServlet {
         w.println("<table>");
         getTrainAnnouncement(responseData).stream().forEach(train -> writeStation(train, w));
         w.println("</table>");
+    }
+
+    private String request(String filters) {
+        return "<REQUEST>\n" +
+                " <LOGIN authenticationkey='" + Key.get() + "' />\n" +
+                " <QUERY objecttype='TrainAnnouncement' orderby='AdvertisedTimeAtLocation'>\n" +
+                "  <FILTER>\n" +
+                "   <AND>\n" +
+                filters +
+                "   </AND>\n" +
+                "  </FILTER>\n" +
+                "  <INCLUDE>LocationSignature</INCLUDE>\n" +
+                "  <INCLUDE>AdvertisedTrainIdent</INCLUDE>\n" +
+                "  <INCLUDE>AdvertisedTimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>EstimatedTimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>TimeAtLocation</INCLUDE>\n" +
+                "  <INCLUDE>ProductInformation</INCLUDE>\n" +
+                "  <INCLUDE>ToLocation</INCLUDE>\n" +
+                "  <INCLUDE>ActivityType</INCLUDE>\n" +
+                " </QUERY>\n" +
+                "</REQUEST>";
     }
 
     @SuppressWarnings("unchecked")
@@ -245,6 +235,26 @@ public class DefaultServlet extends HttpServlet {
         w.println(TrainFormatter.get(train, "time"));
     }
 
+    private void writeEvent(Map<String, Object> train, PrintWriter w) {
+        w.println("<tr>");
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "remaining"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "tolocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "ActivityType"));
+        tdLink(TrainFormatter.get(train, "LocationSignature"), w, "station");
+        w.println("<td>");
+        if (TrainFormatter.isEstimated(train))
+            w.println("<i>");
+        if (TrainFormatter.isActual(train))
+            w.println("<b>");
+        w.println(TrainFormatter.get(train, "time"));
+    }
+
     private void tdLink(String s, PrintWriter w, String classes) {
         w.println("<td class='" + classes + "'><a href=");
         w.println(s);
@@ -277,24 +287,39 @@ public class DefaultServlet extends HttpServlet {
 
     private void writeHeaders(PrintWriter w) {
         w.print("<!doctype html>");
-        w.print("<meta content=\"true\" name=\"HandheldFriendly\">");
+        w.print("<meta content='true' name='HandheldFriendly'>");
         w.print("<meta");
-        w.print(" content=\"width=device-width, height=device-height, user-scalable=no\"");
-        w.print(" name=\"viewport\"");
+        w.print(" content='width=device-width, height=device-height, user-scalable=no'");
+        w.print(" name='viewport'");
         w.print(">");
         w.print("<meta charset=utf-8>");
     }
 
-    private void writeIndex(PrintWriter w) {
-        String direction = getDefaultDirection(now());
-        writeHeader(w, "trafikverket");
-        w.print("<div class='stations'>");
-        for (String id : getStations()) {
-            w.print(format("<a href='%s?%s'>", id, direction));
-            w.print(id);
-            w.print("</a> ");
-        }
-        w.print("</div>");
+    private void writeIndex(PrintWriter w) throws IOException {
+        URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "text/xml");
+        conn.setDoOutput(true);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
+        outputStreamWriter.write(request("<IN name='ProductInformation' value='Pendeltåg' />" +
+                "<GT name='TimeAtLocation' value='$dateadd(-00:03:00)' />" +
+                "<LT name='TimeAtLocation' value='$dateadd(00:03:00)' />"));
+        outputStreamWriter.close();
+
+        if (conn.getResponseCode() != 200)
+            throw new RuntimeException(
+                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
+
+        InputStream inputStream = conn.getInputStream();
+        Map<String, Object> responseData = Parser.parse(inputStream);
+        conn.disconnect();
+
+        writeHeader(w, "TimeAtLocation");
+
+        w.println("<table>");
+        getTrainAnnouncement(responseData).stream().forEach(train -> writeEvent(train, w));
+        w.println("</table>");
     }
 
     private void writeHeader(PrintWriter w, Object stopAreaName) {
