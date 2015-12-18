@@ -83,6 +83,113 @@ public class DefaultServlet extends HttpServlet {
             writeStation(id, request.getQueryString(), w);
     }
 
+    private void writeIndex(PrintWriter w) throws IOException {
+        URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "text/xml");
+        conn.setDoOutput(true);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
+        outputStreamWriter.write(request("<IN name='ProductInformation' value='Pendeltåg' />" +
+                "<GT name='TimeAtLocation' value='$dateadd(-00:03:00)' />" +
+                "<LT name='TimeAtLocation' value='$dateadd(00:03:00)' />"));
+        outputStreamWriter.close();
+
+        if (conn.getResponseCode() != 200)
+            throw new RuntimeException(
+                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
+
+        InputStream inputStream = conn.getInputStream();
+        Map<String, Object> responseData = Parser.parse(inputStream);
+        conn.disconnect();
+
+        writeHeader(w, "TimeAtLocation");
+
+        w.println("<table>");
+        getTrainAnnouncement(responseData).stream().forEach(train -> writeEvent(train, w));
+        w.println("</table>");
+    }
+
+    private void writeEvent(Map<String, Object> train, PrintWriter w) {
+        w.println("<tr>");
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "remaining"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "tolocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "ActivityType"));
+        tdLink(TrainFormatter.get(train, "LocationSignature"), w, "station");
+        w.println("<td>");
+        if (TrainFormatter.isEstimated(train))
+            w.println("<i>");
+        if (TrainFormatter.isActual(train))
+            w.println("<b>");
+        w.println(TrainFormatter.get(train, "time"));
+    }
+
+    private void writeTrain(String id, PrintWriter w) throws IOException {
+        URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "text/xml");
+        conn.setDoOutput(true);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
+        outputStreamWriter.write(request(
+                "<EQ name='AdvertisedTrainIdent' value='" + id + "' />" +
+                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-02:00:00)' />" +
+                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(02:00:00)' />"));
+        outputStreamWriter.close();
+
+        if (conn.getResponseCode() != 200)
+            throw new RuntimeException(
+                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
+
+        InputStream inputStream = conn.getInputStream();
+        Map<String, Object> responseData = Parser.parse(inputStream);
+        conn.disconnect();
+
+        Optional<Map<String, Object>> firstTrain = getFirstTrain(responseData);
+        if (firstTrain.isPresent()) {
+            Object tolocation = TrainFormatter.get(firstTrain.get(), "tolocation");
+            writeHeader(w, tolocation);
+            w.print("<div class='train'>");
+            w.print(format("<a href=%s>", id));
+            w.print(TrainFormatter.get(firstTrain.get(), "AdvertisedTrainIdent"));
+            w.print("</a> ");
+            w.print(tolocation);
+            w.print("</div>");
+        } else {
+            writeHeader(w, id);
+            w.print("<div class='train'>");
+            w.print(format("<a href=%s>", id));
+            w.print(id);
+            w.print("</a>");
+            w.print("</div>");
+        }
+
+        w.println("<table>");
+        getTrainAnnouncement(responseData).stream().forEach(train -> writeStation(train, w));
+        w.println("</table>");
+    }
+
+    private void writeStation(Map<String, Object> train, PrintWriter w) {
+        w.println("<tr>");
+        tdLink(TrainFormatter.get(train, "LocationSignature"), w, "station");
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "remaining"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        w.println("<td>");
+        if (TrainFormatter.isEstimated(train))
+            w.println("<i>");
+        if (TrainFormatter.isActual(train))
+            w.println("<b>");
+        w.println(TrainFormatter.get(train, "time"));
+    }
+
     private void writeStation(String siteId, String direction, PrintWriter w) throws IOException {
         URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -131,49 +238,22 @@ public class DefaultServlet extends HttpServlet {
         w.println("</table>");
     }
 
-    private void writeTrain(String id, PrintWriter w) throws IOException {
-        URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "text/xml");
-        conn.setDoOutput(true);
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
-        outputStreamWriter.write(request(
-                "<EQ name='AdvertisedTrainIdent' value='" + id + "' />" +
-                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-02:00:00)' />" +
-                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(02:00:00)' />"));
-        outputStreamWriter.close();
+    private void writeTrain(Map<String, Object> train, PrintWriter w) {
+        w.println("<tr>");
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "remaining"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "tolocation"));
+        w.println("<td>");
+        if (TrainFormatter.isEstimated(train))
+            w.println("<i>");
+        if (TrainFormatter.isActual(train))
+            w.println("<b>");
+        w.println(TrainFormatter.get(train, "time"));
 
-        if (conn.getResponseCode() != 200)
-            throw new RuntimeException(
-                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
-
-        InputStream inputStream = conn.getInputStream();
-        Map<String, Object> responseData = Parser.parse(inputStream);
-        conn.disconnect();
-
-        Optional<Map<String, Object>> firstTrain = getFirstTrain(responseData);
-        if (firstTrain.isPresent()) {
-            Object tolocation = TrainFormatter.get(firstTrain.get(), "tolocation");
-            writeHeader(w, tolocation);
-            w.print("<div class='train'>");
-            w.print(format("<a href=%s>", id));
-            w.print(TrainFormatter.get(firstTrain.get(), "AdvertisedTrainIdent"));
-            w.print("</a> ");
-            w.print(tolocation);
-            w.print("</div>");
-        } else {
-            writeHeader(w, id);
-            w.print("<div class='train'>");
-            w.print(format("<a href=%s>", id));
-            w.print(id);
-            w.print("</a>");
-            w.print("</div>");
-        }
-
-        w.println("<table>");
-        getTrainAnnouncement(responseData).stream().forEach(train -> writeStation(train, w));
-        w.println("</table>");
+        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
     }
 
     private String request(String filters) {
@@ -200,59 +280,6 @@ public class DefaultServlet extends HttpServlet {
     @SuppressWarnings("unchecked")
     private Collection<Map<String, Object>> getTrainAnnouncement(Map<String, Object> responseData) {
         return (Collection<Map<String, Object>>) responseData.get("TrainAnnouncement");
-    }
-
-    private void writeTrain(Map<String, Object> train, PrintWriter w) {
-        w.println("<tr>");
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "remaining"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "tolocation"));
-        w.println("<td>");
-        if (TrainFormatter.isEstimated(train))
-            w.println("<i>");
-        if (TrainFormatter.isActual(train))
-            w.println("<b>");
-        w.println(TrainFormatter.get(train, "time"));
-
-        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
-    }
-
-    private void writeStation(Map<String, Object> train, PrintWriter w) {
-        w.println("<tr>");
-        tdLink(TrainFormatter.get(train, "LocationSignature"), w, "station");
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "remaining"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
-        w.println("<td>");
-        if (TrainFormatter.isEstimated(train))
-            w.println("<i>");
-        if (TrainFormatter.isActual(train))
-            w.println("<b>");
-        w.println(TrainFormatter.get(train, "time"));
-    }
-
-    private void writeEvent(Map<String, Object> train, PrintWriter w) {
-        w.println("<tr>");
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "remaining"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
-        tdLink(TrainFormatter.get(train, "AdvertisedTrainIdent"), w, "train");
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "tolocation"));
-        w.println("<td>");
-        w.println(TrainFormatter.get(train, "ActivityType"));
-        tdLink(TrainFormatter.get(train, "LocationSignature"), w, "station");
-        w.println("<td>");
-        if (TrainFormatter.isEstimated(train))
-            w.println("<i>");
-        if (TrainFormatter.isActual(train))
-            w.println("<b>");
-        w.println(TrainFormatter.get(train, "time"));
     }
 
     private void tdLink(String s, PrintWriter w, String classes) {
@@ -293,33 +320,6 @@ public class DefaultServlet extends HttpServlet {
         w.print(" name='viewport'");
         w.print(">");
         w.print("<meta charset=utf-8>");
-    }
-
-    private void writeIndex(PrintWriter w) throws IOException {
-        URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "text/xml");
-        conn.setDoOutput(true);
-        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
-        outputStreamWriter.write(request("<IN name='ProductInformation' value='Pendeltåg' />" +
-                "<GT name='TimeAtLocation' value='$dateadd(-00:03:00)' />" +
-                "<LT name='TimeAtLocation' value='$dateadd(00:03:00)' />"));
-        outputStreamWriter.close();
-
-        if (conn.getResponseCode() != 200)
-            throw new RuntimeException(
-                    format("Failed: HTTP error code: %d", conn.getResponseCode()));
-
-        InputStream inputStream = conn.getInputStream();
-        Map<String, Object> responseData = Parser.parse(inputStream);
-        conn.disconnect();
-
-        writeHeader(w, "TimeAtLocation");
-
-        w.println("<table>");
-        getTrainAnnouncement(responseData).stream().forEach(train -> writeEvent(train, w));
-        w.println("</table>");
     }
 
     private void writeHeader(PrintWriter w, Object stopAreaName) {
