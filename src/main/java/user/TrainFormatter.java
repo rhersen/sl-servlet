@@ -2,13 +2,15 @@ package user;
 
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.function.BinaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static java.time.Duration.between;
 import static java.time.LocalDateTime.parse;
-import static java.util.Arrays.asList;
 
 class TrainFormatter {
 
@@ -35,17 +37,16 @@ class TrainFormatter {
         long seconds = between(now, expectedDateTime).getSeconds();
         if (seconds >= 600)
             return String.format("%dm", seconds / 60);
-        else if (seconds >= 0)
+        if (seconds >= 0)
             return String.format("%d:%02d", seconds / 60, seconds % 60);
-        else if (seconds >= -100)
+        if (seconds >= -100)
             return String.format("%d", seconds);
-        else
-            return "";
+        return "";
     }
 
     private static String getWholeMinutes(Map<String, Object> train, String field) {
         String value = getString(train, field);
-        return asList(wholeMinutes, dateTime).stream()
+        return Stream.of(wholeMinutes, dateTime)
                 .map(p -> p.matcher(value))
                 .filter(Matcher::matches)
                 .map(m -> m.group(1))
@@ -54,16 +55,15 @@ class TrainFormatter {
     }
 
     private static String getDestination(Map<String, Object> train) {
-        Deque raw = (Deque) train.get("ToLocation");
-        if (raw != null && !raw.isEmpty())
-            return raw.getLast().toString();
-        else
-            return "" + raw;
+        BinaryOperator<String> last = (a, b) -> b;
+        //noinspection unchecked
+        Collection<String> raw = (Collection<String>) train.get("ToLocation");
+        if (raw == null) {return "";}
+        return raw.stream().reduce(last).orElse("");
     }
 
     private static String getString(Map<String, Object> map, String key) {
-        Object value = map.get(key);
-        return value == null ? "" : value.toString();
+        return map.getOrDefault(key, "").toString();
     }
 
     static boolean isEstimated(Map<String, Object> train) {
@@ -79,6 +79,6 @@ class TrainFormatter {
             return getWholeMinutes(train, "TimeAtLocation");
         if (isEstimated(train))
             return getWholeMinutes(train, "EstimatedTimeAtLocation");
-        return getWholeMinutes(train, "AdvertisedTimeAtLocation");
+        return "";
     }
 }

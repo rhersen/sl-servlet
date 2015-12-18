@@ -54,7 +54,7 @@ public class TrainFormatterTest {
 
     @Test
     public void estimatedTime() throws Exception {
-        assertEquals(time(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00")), "17:01");
+        assertEquals(time(getTrain("AdvertisedTimeAtLocation", "2015-08-18T17:01:00")), "");
         assertEquals(time(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00")), "17:01");
         assertEquals(time(getTrain("EstimatedTimeAtLocation", "2015-08-18T17:01:00", "TimeAtLocation", "2015-08-18T17:01:25")), "17:01:25");
     }
@@ -78,9 +78,19 @@ public class TrainFormatterTest {
     }
 
     @Test
-    public void toLocation() throws Exception {
+    public void toLocationReturnsLast() throws Exception {
         List<String> strings = asList("Äs", "Söc");
         assertEquals("Söc", get(getTrain("ToLocation", new ArrayDeque<>(strings)), "tolocation"));
+    }
+
+    @Test
+    public void toLocationReturnsEmptyArray() throws Exception {
+        assertEquals("", get(getTrain("ToLocation", new ArrayDeque<>()), "tolocation"));
+    }
+
+    @Test
+    public void toLocationReturnsEmpty() throws Exception {
+        assertEquals("", get(getTrain("DisplayTime", "17:00"), "tolocation"));
     }
 
     @Test
