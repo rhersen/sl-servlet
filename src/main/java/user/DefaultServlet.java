@@ -79,7 +79,7 @@ public class DefaultServlet extends HttpServlet {
         String id = SiteId.get(uri);
         if (id == null)
             writeIndex(w);
-        else if (id.matches("\\d\\d\\d\\d"))
+        else if (id.matches("\\d+"))
             writeTrain(id, w);
         else
             writeStation(id, request.getQueryString(), w);
@@ -110,7 +110,7 @@ public class DefaultServlet extends HttpServlet {
         writeHeader(w, "TimeAtLocation");
 
         w.println("<table>");
-        getTrainAnnouncement(responseData).stream().forEach(train -> writeEvent(train, w));
+        getTrainAnnouncement(responseData).forEach(train -> writeEvent(train, w));
         w.println("</table>");
     }
 
@@ -175,7 +175,7 @@ public class DefaultServlet extends HttpServlet {
         }
 
         w.println("<table>");
-        getTrainAnnouncement(responseData).stream().forEach(train -> writeStation(train, w));
+        getTrainAnnouncement(responseData).forEach(train -> writeStation(train, w));
         w.println("</table>");
     }
 
@@ -238,7 +238,7 @@ public class DefaultServlet extends HttpServlet {
         }
 
         w.println("<table>");
-        getTrainAnnouncement(responseData).stream().forEach(train -> writeTrain(train, w));
+        getTrainAnnouncement(responseData).forEach(train -> writeTrain(train, w));
         w.println("</table>");
     }
 
