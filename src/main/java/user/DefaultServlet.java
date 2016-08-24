@@ -203,6 +203,7 @@ public class DefaultServlet extends HttpServlet {
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
         outputStreamWriter.write(request(
                 "AdvertisedTimeAtLocation", "<IN name='ProductInformation' value='Pendeltåg' />" +
+                        "<NE name='Canceled' value='true' />" +
                         "<LIKE name='AdvertisedTrainIdent' value='" + getDirectionRegex(direction) +
                         "' />" +
                         "<EQ name='ActivityType' value='Avgang' />" +
