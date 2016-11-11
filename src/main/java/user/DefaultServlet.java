@@ -93,10 +93,10 @@ public class DefaultServlet extends HttpServlet {
         conn.setRequestProperty("Content-Type", "text/xml");
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
-        outputStreamWriter.write(request("AdvertisedTrainIdent,", "<IN name='ProductInformation' value='Pendeltåg' />" +
+        outputStreamWriter.write(request("AdvertisedTrainIdent,", "<IN name='ProductInformation' value='SJ Snabbtåg' />" +
                 "<LIKE name='AdvertisedTrainIdent' value='" + getDirectionRegex(direction) + "' />" +
-                "<GT name='TimeAtLocation' value='$dateadd(-00:04:00)' />" +
-                "<LT name='TimeAtLocation' value='$dateadd(00:04:00)' />"));
+                "<GT name='TimeAtLocation' value='$dateadd(-00:30:00)' />" +
+                "<LT name='TimeAtLocation' value='$dateadd(00:30:00)' />"));
         outputStreamWriter.close();
 
         if (conn.getResponseCode() != 200)
@@ -143,8 +143,8 @@ public class DefaultServlet extends HttpServlet {
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
         outputStreamWriter.write(request(
                 "AdvertisedTimeAtLocation", "<EQ name='AdvertisedTrainIdent' value='" + id + "' />" +
-                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-02:00:00)' />" +
-                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(02:00:00)' />"));
+                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-04:00:00)' />" +
+                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(04:00:00)' />"));
         outputStreamWriter.close();
 
         if (conn.getResponseCode() != 200)
@@ -202,14 +202,14 @@ public class DefaultServlet extends HttpServlet {
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
         outputStreamWriter.write(request(
-                "AdvertisedTimeAtLocation", "<IN name='ProductInformation' value='Pendeltåg' />" +
+                "AdvertisedTimeAtLocation", "<IN name='ProductInformation' value='SJ Snabbtåg' />" +
                         "<NE name='Canceled' value='true' />" +
                         "<LIKE name='AdvertisedTrainIdent' value='" + getDirectionRegex(direction) +
                         "' />" +
                         "<EQ name='ActivityType' value='Avgang' />" +
                         "<EQ name='LocationSignature' value='" + siteId + "' />" +
-                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-00:10:00)' />" +
-                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(00:50:00)' />"));
+                        "<GT name='AdvertisedTimeAtLocation' value='$dateadd(-02:00:00)' />" +
+                        "<LT name='AdvertisedTimeAtLocation' value='$dateadd(04:00:00)' />"));
         outputStreamWriter.close();
 
         if (conn.getResponseCode() != 200)
