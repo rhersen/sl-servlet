@@ -33,7 +33,7 @@ class TrainFormatter {
         return getString(train, key);
     }
 
-    private static String getRemaining(Map<String, Object> train, Temporal now) {
+    static String getRemaining(Map<String, Object> train, Temporal now) {
         String t = getString(train, "EstimatedTimeAtLocation");
         if (t.isEmpty())
             t = getString(train, "AdvertisedTimeAtLocation");
@@ -90,7 +90,7 @@ class TrainFormatter {
         return train.get("TimeAtLocation") != null;
     }
 
-    private static String time(Map<String, Object> train) {
+    static String time(Map<String, Object> train) {
         if (isActual(train))
             return getWholeMinutes(train, "TimeAtLocation");
         if (isEstimated(train))
