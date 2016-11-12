@@ -18,10 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import static java.lang.String.format;
-import static java.time.LocalTime.now;
 import static user.JsonData.getFirstTrain;
 import static user.Utils.getByteList;
-import static user.Utils.getDefaultDirection;
 import static user.Utils.getDirectionRegex;
 
 public class DefaultServlet extends HttpServlet {
@@ -86,7 +84,6 @@ public class DefaultServlet extends HttpServlet {
     }
 
     private void writeIndex(PrintWriter w) throws IOException {
-        String direction = getDefaultDirection(now());
         URL url = new URL("http://api.trafikinfo.trafikverket.se/v1/data.json");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
@@ -94,7 +91,6 @@ public class DefaultServlet extends HttpServlet {
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
         outputStreamWriter.write(request("AdvertisedTrainIdent,", "<IN name='ProductInformation' value='SJ Snabbtåg' />" +
-                "<LIKE name='AdvertisedTrainIdent' value='" + getDirectionRegex(direction) + "' />" +
                 "<GT name='TimeAtLocation' value='$dateadd(-00:30:00)' />" +
                 "<LT name='TimeAtLocation' value='$dateadd(00:30:00)' />"));
         outputStreamWriter.close();
