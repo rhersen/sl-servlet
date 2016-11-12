@@ -198,8 +198,7 @@ public class DefaultServlet extends HttpServlet {
         conn.setDoOutput(true);
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(conn.getOutputStream());
         outputStreamWriter.write(request(
-                "AdvertisedTimeAtLocation", "<IN name='ProductInformation' value='SJ Snabbtåg' />" +
-                        "<NE name='Canceled' value='true' />" +
+                "AdvertisedTimeAtLocation", "<NE name='Canceled' value='true' />" +
                         "<LIKE name='AdvertisedTrainIdent' value='" + getDirectionRegex(direction) +
                         "' />" +
                         "<EQ name='ActivityType' value='Avgang' />" +
@@ -245,6 +244,8 @@ public class DefaultServlet extends HttpServlet {
         w.println(TrainFormatter.get(train, "remaining"));
         w.println("<td>");
         w.println(TrainFormatter.get(train, "advertisedtimeatlocation"));
+        w.println("<td>");
+        w.println(TrainFormatter.get(train, "productinformation"));
         w.println("<td>");
         w.println(TrainFormatter.get(train, "tolocation"));
         w.println("<td>");

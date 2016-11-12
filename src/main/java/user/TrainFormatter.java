@@ -2,7 +2,9 @@ package user;
 
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
+import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.Map;
 import java.util.function.BinaryOperator;
 import java.util.regex.Matcher;
@@ -24,12 +26,14 @@ class TrainFormatter {
             return getDestination(train);
         if (key.equals("remaining"))
             return getRemaining(train, LocalDateTime.now());
+        if (key.equals("productinformation"))
+            return getProductInformation(train);
         if (key.equals("time"))
             return time(train);
         return getString(train, key);
     }
 
-    static String getRemaining(Map<String, Object> train, Temporal now) {
+    private static String getRemaining(Map<String, Object> train, Temporal now) {
         String t = getString(train, "EstimatedTimeAtLocation");
         if (t.isEmpty())
             t = getString(train, "AdvertisedTimeAtLocation");
@@ -55,11 +59,23 @@ class TrainFormatter {
     }
 
     private static String getDestination(Map<String, Object> train) {
-        BinaryOperator<String> last = (a, b) -> b;
         //noinspection unchecked
         Collection<String> raw = (Collection<String>) train.get("ToLocation");
-        if (raw == null) {return "";}
-        return raw.stream().reduce(last).orElse("");
+
+        if (raw == null)
+            return "";
+
+        return raw.stream().reduce((a, b) -> b).orElse("");
+    }
+
+    private static String getProductInformation(Map<String, Object> train) {
+        //noinspection unchecked
+        Deque<String> raw = (ArrayDeque<String>) train.get("ProductInformation");
+
+        if (raw == null || raw.isEmpty())
+            return "";
+
+        return raw.getFirst();
     }
 
     private static String getString(Map<String, Object> map, String key) {
@@ -74,7 +90,7 @@ class TrainFormatter {
         return train.get("TimeAtLocation") != null;
     }
 
-    static String time(Map<String, Object> train) {
+    private static String time(Map<String, Object> train) {
         if (isActual(train))
             return getWholeMinutes(train, "TimeAtLocation");
         if (isEstimated(train))
